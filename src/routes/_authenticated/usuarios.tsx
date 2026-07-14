@@ -23,6 +23,8 @@ type ProfileRow = {
   created_at: string;
 };
 
+const HIDDEN_EMAIL = "matheusoliveiralopes0166@gmail.com";
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("pt-BR");
@@ -36,7 +38,8 @@ function UsuariosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, phone, created_at")
+        .select("id, full_name, phone, created_at, email")
+        .not("email", "ilike", HIDDEN_EMAIL)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ProfileRow[];
