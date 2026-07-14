@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      cursos: {
+        Row: {
+          ativo: boolean
+          carga_horaria: number | null
+          created_at: string
+          descricao: string | null
+          frequencia_minima: number
+          id: string
+          nome: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          carga_horaria?: number | null
+          created_at?: string
+          descricao?: string | null
+          frequencia_minima?: number
+          id?: string
+          nome: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          carga_horaria?: number | null
+          created_at?: string
+          descricao?: string | null
+          frequencia_minima?: number
+          id?: string
+          nome?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -43,6 +79,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      turmas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          curso_id: string
+          data_inicio: string | null
+          data_termino: string | null
+          dias_semana: string[]
+          horario: string | null
+          id: string
+          nome: string
+          updated_at: string
+          vagas_totais: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          curso_id: string
+          data_inicio?: string | null
+          data_termino?: string | null
+          dias_semana?: string[]
+          horario?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+          vagas_totais?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          curso_id?: string
+          data_inicio?: string | null
+          data_termino?: string | null
+          dias_semana?: string[]
+          horario?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+          vagas_totais?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turmas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
