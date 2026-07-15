@@ -13,7 +13,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated/turmas'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCursosRouteImport } from './routes/_authenticated/cursos'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -34,22 +36,36 @@ const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTurmasRoute = AuthenticatedTurmasRouteImport.update({
+  id: '/turmas',
+  path: '/turmas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCursosRoute = AuthenticatedCursosRouteImport.update({
+  id: '/cursos',
+  path: '/cursos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesById {
@@ -57,20 +73,24 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/cursos': typeof AuthenticatedCursosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/turmas': typeof AuthenticatedTurmasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/usuarios'
+  fullPaths: '/' | '/auth' | '/cursos' | '/dashboard' | '/turmas' | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/usuarios'
+  to: '/' | '/auth' | '/cursos' | '/dashboard' | '/turmas' | '/usuarios'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/cursos'
     | '/_authenticated/dashboard'
+    | '/_authenticated/turmas'
     | '/_authenticated/usuarios'
   fileRoutesById: FileRoutesById
 }
@@ -110,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/turmas': {
+      id: '/_authenticated/turmas'
+      path: '/turmas'
+      fullPath: '/turmas'
+      preLoaderRoute: typeof AuthenticatedTurmasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -117,16 +144,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cursos': {
+      id: '/_authenticated/cursos'
+      path: '/cursos'
+      fullPath: '/cursos'
+      preLoaderRoute: typeof AuthenticatedCursosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCursosRoute: typeof AuthenticatedCursosRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedTurmasRoute: typeof AuthenticatedTurmasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCursosRoute: AuthenticatedCursosRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedTurmasRoute: AuthenticatedTurmasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
 }
 
