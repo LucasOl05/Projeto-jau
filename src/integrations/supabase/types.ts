@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      aluno_responsavel: {
+        Row: {
+          aluno_id: string
+          created_at: string
+          parentesco: string | null
+          responsavel_id: string
+        }
+        Insert: {
+          aluno_id: string
+          created_at?: string
+          parentesco?: string | null
+          responsavel_id: string
+        }
+        Update: {
+          aluno_id?: string
+          created_at?: string
+          parentesco?: string | null
+          responsavel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aluno_responsavel_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aluno_responsavel_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "responsaveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alunos: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          data_nascimento: string | null
+          id: string
+          matricula: number
+          nome: string
+          rg: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          id?: string
+          matricula?: number
+          nome: string
+          rg?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          id?: string
+          matricula?: number
+          nome?: string
+          rg?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cursos: {
         Row: {
           ativo: boolean
@@ -50,6 +122,36 @@ export type Database = {
         }
         Relationships: []
       }
+      professores: {
+        Row: {
+          ativo: boolean
+          cpf: string | null
+          created_at: string
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -76,6 +178,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      responsaveis: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
           updated_at?: string
         }
         Relationships: []
