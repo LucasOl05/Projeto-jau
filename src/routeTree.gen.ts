@@ -14,9 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated/turmas'
+import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated/responsaveis'
 import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenticated/professores'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCursosRouteImport } from './routes/_authenticated/cursos'
+import { Route as AuthenticatedAlunosRouteImport } from './routes/_authenticated/alunos'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -42,6 +44,12 @@ const AuthenticatedTurmasRoute = AuthenticatedTurmasRouteImport.update({
   path: '/turmas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedResponsaveisRoute =
+  AuthenticatedResponsaveisRouteImport.update({
+    id: '/responsaveis',
+    path: '/responsaveis',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfessoresRoute =
   AuthenticatedProfessoresRouteImport.update({
     id: '/professores',
@@ -58,22 +66,31 @@ const AuthenticatedCursosRoute = AuthenticatedCursosRouteImport.update({
   path: '/cursos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAlunosRoute = AuthenticatedAlunosRouteImport.update({
+  id: '/alunos',
+  path: '/alunos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/alunos': typeof AuthenticatedAlunosRoute
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/alunos': typeof AuthenticatedAlunosRoute
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
 }
@@ -82,9 +99,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/alunos': typeof AuthenticatedAlunosRoute
   '/_authenticated/cursos': typeof AuthenticatedCursosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/professores': typeof AuthenticatedProfessoresRoute
+  '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/_authenticated/turmas': typeof AuthenticatedTurmasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
 }
@@ -93,18 +112,22 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/alunos'
     | '/cursos'
     | '/dashboard'
     | '/professores'
+    | '/responsaveis'
     | '/turmas'
     | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/alunos'
     | '/cursos'
     | '/dashboard'
     | '/professores'
+    | '/responsaveis'
     | '/turmas'
     | '/usuarios'
   id:
@@ -112,9 +135,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/alunos'
     | '/_authenticated/cursos'
     | '/_authenticated/dashboard'
     | '/_authenticated/professores'
+    | '/_authenticated/responsaveis'
     | '/_authenticated/turmas'
     | '/_authenticated/usuarios'
   fileRoutesById: FileRoutesById
@@ -162,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTurmasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/responsaveis': {
+      id: '/_authenticated/responsaveis'
+      path: '/responsaveis'
+      fullPath: '/responsaveis'
+      preLoaderRoute: typeof AuthenticatedResponsaveisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/professores': {
       id: '/_authenticated/professores'
       path: '/professores'
@@ -183,21 +215,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCursosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/alunos': {
+      id: '/_authenticated/alunos'
+      path: '/alunos'
+      fullPath: '/alunos'
+      preLoaderRoute: typeof AuthenticatedAlunosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlunosRoute: typeof AuthenticatedAlunosRoute
   AuthenticatedCursosRoute: typeof AuthenticatedCursosRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfessoresRoute: typeof AuthenticatedProfessoresRoute
+  AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
   AuthenticatedTurmasRoute: typeof AuthenticatedTurmasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlunosRoute: AuthenticatedAlunosRoute,
   AuthenticatedCursosRoute: AuthenticatedCursosRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfessoresRoute: AuthenticatedProfessoresRoute,
+  AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
   AuthenticatedTurmasRoute: AuthenticatedTurmasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
 }

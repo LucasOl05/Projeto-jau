@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SidebarTrigger />
             <div className="ml-auto flex items-center gap-3">
               <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
+              <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
