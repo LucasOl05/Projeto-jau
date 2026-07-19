@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, GraduationCap, BookOpen, Users2, UserCog } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 import {
   Sidebar,
@@ -20,6 +21,8 @@ const items = [
   { title: "Cursos", url: "/cursos", icon: BookOpen },
   { title: "Turmas", url: "/turmas", icon: Users2 },
   { title: "Professores", url: "/professores", icon: UserCog },
+  { title: "Alunos", url: "/alunos", icon: GraduationCap },
+  { title: "Responsáveis", url: "/responsaveis", icon: HeartHandshake },
 ];
 
 export function AppSidebar() {
@@ -31,9 +34,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border/60">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-sm">
-            <GraduationCap className="h-5 w-5" />
-          </div>
+          <BrandLogo size={36} rounded="rounded-lg" className="shrink-0" />
           {!collapsed && (
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">JAU ERP</div>
