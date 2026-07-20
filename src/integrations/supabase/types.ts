@@ -122,6 +122,219 @@ export type Database = {
         }
         Relationships: []
       }
+      diario_chamada: {
+        Row: {
+          aluno_id: string
+          created_at: string
+          diario_id: string
+          id: string
+          presente: boolean
+          school_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aluno_id: string
+          created_at?: string
+          diario_id: string
+          id?: string
+          presente: boolean
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aluno_id?: string
+          created_at?: string
+          diario_id?: string
+          id?: string
+          presente?: boolean
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diario_chamada_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_chamada_diario_id_fkey"
+            columns: ["diario_id"]
+            isOneToOne: false
+            referencedRelation: "diario_classe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_chamada_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diario_classe: {
+        Row: {
+          codigo_publico: string | null
+          conteudo_ministrado: string
+          created_at: string
+          created_by: string | null
+          data_aula: string
+          deleted_at: string | null
+          disciplina_id: string
+          id: string
+          justificativa_retroativa: string | null
+          planejamento_proxima_aula: string
+          school_id: string
+          status: string
+          turma_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          codigo_publico?: string | null
+          conteudo_ministrado: string
+          created_at?: string
+          created_by?: string | null
+          data_aula: string
+          deleted_at?: string | null
+          disciplina_id: string
+          id?: string
+          justificativa_retroativa?: string | null
+          planejamento_proxima_aula: string
+          school_id?: string
+          status?: string
+          turma_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          codigo_publico?: string | null
+          conteudo_ministrado?: string
+          created_at?: string
+          created_by?: string | null
+          data_aula?: string
+          deleted_at?: string | null
+          disciplina_id?: string
+          id?: string
+          justificativa_retroativa?: string | null
+          planejamento_proxima_aula?: string
+          school_id?: string
+          status?: string
+          turma_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diario_classe_disciplina_id_fkey"
+            columns: ["disciplina_id"]
+            isOneToOne: false
+            referencedRelation: "disciplinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_classe_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_classe_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disciplinas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          professor_id: string | null
+          school_id: string
+          turma_id: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          professor_id?: string | null
+          school_id?: string
+          turma_id: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          professor_id?: string | null
+          school_id?: string
+          turma_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disciplinas_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disciplinas_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disciplinas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escolas: {
+        Row: {
+          ativa: boolean
+          created_at: string
+          id: string
+          nome: string
+          padrao: boolean
+          updated_at: string
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          padrao?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          padrao?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       professores: {
         Row: {
           ativo: boolean
@@ -215,6 +428,7 @@ export type Database = {
       turmas: {
         Row: {
           ativo: boolean
+          codigo_publico: string | null
           created_at: string
           curso_id: string
           data_inicio: string | null
@@ -223,11 +437,13 @@ export type Database = {
           horario: string | null
           id: string
           nome: string
+          school_id: string
           updated_at: string
           vagas_totais: number | null
         }
         Insert: {
           ativo?: boolean
+          codigo_publico?: string | null
           created_at?: string
           curso_id: string
           data_inicio?: string | null
@@ -236,11 +452,13 @@ export type Database = {
           horario?: string | null
           id?: string
           nome: string
+          school_id?: string
           updated_at?: string
           vagas_totais?: number | null
         }
         Update: {
           ativo?: boolean
+          codigo_publico?: string | null
           created_at?: string
           curso_id?: string
           data_inicio?: string | null
@@ -249,6 +467,7 @@ export type Database = {
           horario?: string | null
           id?: string
           nome?: string
+          school_id?: string
           updated_at?: string
           vagas_totais?: number | null
         }
@@ -258,6 +477,13 @@ export type Database = {
             columns: ["curso_id"]
             isOneToOne: false
             referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turmas_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
             referencedColumns: ["id"]
           },
         ]
@@ -288,6 +514,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_default_school_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
