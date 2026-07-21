@@ -256,33 +256,48 @@ export type Database = {
       disciplinas: {
         Row: {
           ativo: boolean
+          codigo_publico: string | null
           created_at: string
+          created_by: string | null
+          deleted_at: string | null
           id: string
           nome: string
           professor_id: string | null
           school_id: string
+          status: string
           turma_id: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           ativo?: boolean
+          codigo_publico?: string | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           id?: string
           nome: string
           professor_id?: string | null
           school_id?: string
+          status?: string
           turma_id: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           ativo?: boolean
+          codigo_publico?: string | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           id?: string
           nome?: string
           professor_id?: string | null
           school_id?: string
+          status?: string
           turma_id?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
