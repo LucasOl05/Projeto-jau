@@ -16,6 +16,7 @@ import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated/turmas'
 import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated/responsaveis'
 import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenticated/professores'
+import { Route as AuthenticatedDisciplinasRouteImport } from './routes/_authenticated/disciplinas'
 import { Route as AuthenticatedDiarioRouteImport } from './routes/_authenticated/diario'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCursosRouteImport } from './routes/_authenticated/cursos'
@@ -57,6 +58,12 @@ const AuthenticatedProfessoresRoute =
     path: '/professores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDisciplinasRoute =
+  AuthenticatedDisciplinasRouteImport.update({
+    id: '/disciplinas',
+    path: '/disciplinas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDiarioRoute = AuthenticatedDiarioRouteImport.update({
   id: '/diario',
   path: '/diario',
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
+  '/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/professores': typeof AuthenticatedProfessoresRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
+  '/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/professores': typeof AuthenticatedProfessoresRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
@@ -111,6 +120,7 @@ export interface FileRoutesById {
   '/_authenticated/cursos': typeof AuthenticatedCursosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/diario': typeof AuthenticatedDiarioRoute
+  '/_authenticated/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/_authenticated/professores': typeof AuthenticatedProfessoresRoute
   '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/_authenticated/turmas': typeof AuthenticatedTurmasRoute
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/cursos'
     | '/dashboard'
     | '/diario'
+    | '/disciplinas'
     | '/professores'
     | '/responsaveis'
     | '/turmas'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/cursos'
     | '/dashboard'
     | '/diario'
+    | '/disciplinas'
     | '/professores'
     | '/responsaveis'
     | '/turmas'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cursos'
     | '/_authenticated/dashboard'
     | '/_authenticated/diario'
+    | '/_authenticated/disciplinas'
     | '/_authenticated/professores'
     | '/_authenticated/responsaveis'
     | '/_authenticated/turmas'
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfessoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/disciplinas': {
+      id: '/_authenticated/disciplinas'
+      path: '/disciplinas'
+      fullPath: '/disciplinas'
+      preLoaderRoute: typeof AuthenticatedDisciplinasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/diario': {
       id: '/_authenticated/diario'
       path: '/diario'
@@ -249,6 +269,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCursosRoute: typeof AuthenticatedCursosRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiarioRoute: typeof AuthenticatedDiarioRoute
+  AuthenticatedDisciplinasRoute: typeof AuthenticatedDisciplinasRoute
   AuthenticatedProfessoresRoute: typeof AuthenticatedProfessoresRoute
   AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
   AuthenticatedTurmasRoute: typeof AuthenticatedTurmasRoute
@@ -260,6 +281,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCursosRoute: AuthenticatedCursosRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiarioRoute: AuthenticatedDiarioRoute,
+  AuthenticatedDisciplinasRoute: AuthenticatedDisciplinasRoute,
   AuthenticatedProfessoresRoute: AuthenticatedProfessoresRoute,
   AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
   AuthenticatedTurmasRoute: AuthenticatedTurmasRoute,
