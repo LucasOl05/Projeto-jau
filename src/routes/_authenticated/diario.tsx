@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/diario")({
 });
 
 type Turma = { id: string; nome: string; codigo_publico: string | null };
-type Disciplina = { id: string; nome: string; turma_id: string };
+type Disciplina = { id: string; nome: string; turma_id: string; codigo_publico: string | null };
 type Aluno = { id: string; nome: string; matricula: number };
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -70,9 +70,10 @@ function DiarioPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("disciplinas")
-        .select("id, nome, turma_id")
+        .select("id, nome, turma_id, codigo_publico")
         .eq("turma_id", turmaId)
         .eq("ativo", true)
+        .is("deleted_at", null)
         .order("nome");
       if (error) throw error;
       return (data ?? []) as Disciplina[];
@@ -264,7 +265,9 @@ function DiarioPage() {
               </SelectTrigger>
               <SelectContent>
                 {(disciplinasQuery.data ?? []).map((d) => (
-                  <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.codigo_publico ? `${d.codigo_publico} — ` : ""}{d.nome}
+                  </SelectItem>
                 ))}
                 {disciplinasQuery.data?.length === 0 && (
                   <div className="px-2 py-3 text-xs text-muted-foreground">
