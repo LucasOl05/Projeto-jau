@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake, ClipboardCheck, Library } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake, ClipboardCheck, Library, FileSignature } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 import {
@@ -23,6 +23,7 @@ const items = [
   { title: "Disciplinas", url: "/disciplinas", icon: Library },
   { title: "Professores", url: "/professores", icon: UserCog },
   { title: "Alunos", url: "/alunos", icon: GraduationCap },
+  { title: "Matrículas", url: "/matriculas", icon: FileSignature },
   { title: "Responsáveis", url: "/responsaveis", icon: HeartHandshake },
   { title: "Diário de Classe", url: "/diario", icon: ClipboardCheck },
 ];
