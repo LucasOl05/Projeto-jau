@@ -59,11 +59,13 @@ export const Route = createFileRoute("/_authenticated/alunos")({
   component: AlunosPage,
 });
 
-type Status = "ativo" | "pendente" | "trancado";
+const STATUS_OPTIONS = ["Pendente", "Ativo", "Trancado", "Concluído", "Inativo"] as const;
+type Status = (typeof STATUS_OPTIONS)[number];
 
 type Aluno = {
   id: string;
   matricula: number;
+  codigo_publico: string | null;
   nome: string;
   cpf: string | null;
   rg: string | null;
@@ -78,6 +80,7 @@ type LinkedResp = { responsavel_id: string; parentesco: string | null; nome: str
 
 type FormState = {
   id?: string;
+  codigo_publico: string;
   nome: string;
   cpf: string;
   rg: string;
@@ -87,34 +90,43 @@ type FormState = {
 };
 
 const emptyForm: FormState = {
+  codigo_publico: "",
   nome: "",
   cpf: "",
   rg: "",
   data_nascimento: "",
-  status: "ativo",
+  status: "Pendente",
   vinculos: [],
 };
 
-const parentescos = ["Mãe", "Pai", "Tutor", "Avó", "Avô", "Outro"];
+const parentescos = ["Mãe", "Pai", "Tutor", "Responsável Financeiro", "Avó", "Avô", "Outro"];
 
 function StatusBadge({ status }: { status: Status }) {
-  if (status === "ativo")
+  if (status === "Ativo")
     return (
       <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
         Ativo
       </Badge>
     );
-  if (status === "pendente")
+  if (status === "Pendente")
     return (
       <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
         Pendente
       </Badge>
     );
-  return (
-    <Badge className="bg-red-500/15 text-red-700 hover:bg-red-500/20 dark:text-red-400">
-      Trancado
-    </Badge>
-  );
+  if (status === "Trancado")
+    return (
+      <Badge className="bg-red-500/15 text-red-700 hover:bg-red-500/20 dark:text-red-400">
+        Trancado
+      </Badge>
+    );
+  if (status === "Concluído")
+    return (
+      <Badge className="bg-sky-500/15 text-sky-700 hover:bg-sky-500/20 dark:text-sky-400">
+        Concluído
+      </Badge>
+    );
+  return <Badge variant="secondary">Inativo</Badge>;
 }
 
 function AlunosPage() {
@@ -130,7 +142,8 @@ function AlunosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alunos")
-        .select("*")
+        .select("id, matricula, codigo_publico, nome, cpf, rg, data_nascimento, status, created_at")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Aluno[];
@@ -171,6 +184,7 @@ function AlunosPage() {
         rg: f.rg.trim() || null,
         data_nascimento: isoNasc,
         status: f.status,
+        ...(f.codigo_publico.trim() ? { codigo_publico: f.codigo_publico.trim() } : {}),
       };
 
       let alunoId = f.id;
@@ -183,45 +197,23 @@ function AlunosPage() {
         alunoId = data.id;
       }
 
-      // Sincroniza vínculos: apaga os removidos, adiciona os novos, atualiza parentesco.
-      const { data: existing, error: exErr } = await supabase
-        .from("aluno_responsavel")
-        .select("responsavel_id, parentesco")
-        .eq("aluno_id", alunoId);
-      if (exErr) throw exErr;
-      const existingMap = new Map((existing ?? []).map((r) => [r.responsavel_id, r.parentesco]));
-      const newIds = new Set(f.vinculos.map((v) => v.responsavel_id));
+      // Sincroniza vínculos N:N em 2 chamadas (sem loop N+1)
+      const keepIds = f.vinculos.map((v) => v.responsavel_id);
+      let del = supabase.from("aluno_responsavel").delete().eq("aluno_id", alunoId);
+      if (keepIds.length > 0) del = del.not("responsavel_id", "in", `(${keepIds.join(",")})`);
+      const { error: delErr } = await del;
+      if (delErr) throw delErr;
 
-      // remover
-      for (const [rid] of existingMap) {
-        if (!newIds.has(rid)) {
-          const { error } = await supabase
-            .from("aluno_responsavel")
-            .delete()
-            .eq("aluno_id", alunoId)
-            .eq("responsavel_id", rid);
-          if (error) throw error;
-        }
-      }
-      // inserir / atualizar
-      for (const v of f.vinculos) {
-        if (existingMap.has(v.responsavel_id)) {
-          if (existingMap.get(v.responsavel_id) !== v.parentesco) {
-            const { error } = await supabase
-              .from("aluno_responsavel")
-              .update({ parentesco: v.parentesco })
-              .eq("aluno_id", alunoId)
-              .eq("responsavel_id", v.responsavel_id);
-            if (error) throw error;
-          }
-        } else {
-          const { error } = await supabase.from("aluno_responsavel").insert({
-            aluno_id: alunoId,
+      if (f.vinculos.length > 0) {
+        const { error: upErr } = await supabase.from("aluno_responsavel").upsert(
+          f.vinculos.map((v) => ({
+            aluno_id: alunoId!,
             responsavel_id: v.responsavel_id,
             parentesco: v.parentesco,
-          });
-          if (error) throw error;
-        }
+          })),
+          { onConflict: "aluno_id,responsavel_id" },
+        );
+        if (upErr) throw upErr;
       }
     },
     onSuccess: () => {
@@ -251,7 +243,10 @@ function AlunosPage() {
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
     return rows.filter(
-      (r) => r.nome.toLowerCase().includes(q) || String(r.matricula).includes(q),
+      (r) =>
+        r.nome.toLowerCase().includes(q) ||
+        String(r.matricula).includes(q) ||
+        (r.codigo_publico ?? "").toLowerCase().includes(q),
     );
   }, [alunosQuery.data, query]);
 
@@ -259,8 +254,8 @@ function AlunosPage() {
     const rows = alunosQuery.data ?? [];
     return {
       total: rows.length,
-      ativos: rows.filter((r) => r.status === "ativo").length,
-      pendentes: rows.filter((r) => r.status === "pendente").length,
+      ativos: rows.filter((r) => r.status === "Ativo").length,
+      pendentes: rows.filter((r) => r.status === "Pendente").length,
     };
   }, [alunosQuery.data]);
 
@@ -280,6 +275,7 @@ function AlunosPage() {
     });
     setForm({
       id: a.id,
+      codigo_publico: a.codigo_publico ?? "",
       nome: a.nome,
       cpf: a.cpf ? maskCPF(a.cpf) : "",
       rg: a.rg ?? "",
@@ -366,7 +362,9 @@ function AlunosPage() {
               )}
               {filtered.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-mono text-xs text-muted-foreground">#{a.matricula}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {a.codigo_publico ?? `#${a.matricula}`}
+                  </TableCell>
                   <TableCell className="font-medium">{a.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{a.cpf ? maskCPF(a.cpf) : "—"}</TableCell>
                   <TableCell><StatusBadge status={a.status} /></TableCell>
@@ -396,13 +394,25 @@ function AlunosPage() {
             <DialogDescription>Dados pessoais e vínculo com responsáveis.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome *</Label>
-              <Input id="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="nome">Nome *</Label>
+                <Input id="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="codigo">Matrícula / Código</Label>
+                <Input
+                  id="codigo"
+                  value={form.codigo_publico}
+                  onChange={(e) => setForm({ ...form, codigo_publico: e.target.value })}
+                  placeholder="Auto (ALU-000001)"
+                />
+                <p className="text-[11px] text-muted-foreground">Deixe em branco para gerar automaticamente.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="cpf">CPF</Label>
+                <Label htmlFor="cpf">CPF (opcional)</Label>
                 <Input
                   id="cpf"
                   inputMode="numeric"
@@ -431,9 +441,9 @@ function AlunosPage() {
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Status })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="trancado">Trancado</SelectItem>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

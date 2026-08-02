@@ -52,39 +52,196 @@ export type Database = {
       }
       alunos: {
         Row: {
+          codigo_publico: string | null
           cpf: string | null
           created_at: string
+          created_by: string | null
           data_nascimento: string | null
+          deleted_at: string | null
           id: string
           matricula: number
           nome: string
           rg: string | null
+          school_id: string | null
           status: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
+          codigo_publico?: string | null
           cpf?: string | null
           created_at?: string
+          created_by?: string | null
           data_nascimento?: string | null
+          deleted_at?: string | null
           id?: string
           matricula?: number
           nome: string
           rg?: string | null
+          school_id?: string | null
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
+          codigo_publico?: string | null
           cpf?: string | null
           created_at?: string
+          created_by?: string | null
           data_nascimento?: string | null
+          deleted_at?: string | null
           id?: string
           matricula?: number
           nome?: string
           rg?: string | null
+          school_id?: string | null
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "alunos_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacao_notas: {
+        Row: {
+          aluno_id: string
+          avaliacao_id: string
+          created_at: string
+          id: string
+          nota: number | null
+          parecer: string | null
+          school_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aluno_id: string
+          avaliacao_id: string
+          created_at?: string
+          id?: string
+          nota?: number | null
+          parecer?: string | null
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aluno_id?: string
+          avaliacao_id?: string
+          created_at?: string
+          id?: string
+          nota?: number | null
+          parecer?: string | null
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacao_notas_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_notas_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_notas_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes: {
+        Row: {
+          codigo_publico: string | null
+          created_at: string
+          created_by: string | null
+          data_avaliacao: string
+          deleted_at: string | null
+          descricao: string | null
+          disciplina_id: string
+          id: string
+          nota_maxima: number | null
+          peso: number | null
+          school_id: string
+          titulo: string
+          turma_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          codigo_publico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_avaliacao?: string
+          deleted_at?: string | null
+          descricao?: string | null
+          disciplina_id: string
+          id?: string
+          nota_maxima?: number | null
+          peso?: number | null
+          school_id?: string
+          titulo: string
+          turma_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          codigo_publico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_avaliacao?: string
+          deleted_at?: string | null
+          descricao?: string | null
+          disciplina_id?: string
+          id?: string
+          nota_maxima?: number | null
+          peso?: number | null
+          school_id?: string
+          titulo?: string
+          turma_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_disciplina_id_fkey"
+            columns: ["disciplina_id"]
+            isOneToOne: false
+            referencedRelation: "disciplinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cursos: {
         Row: {
@@ -130,6 +287,7 @@ export type Database = {
           id: string
           presente: boolean
           school_id: string
+          situacao: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -140,6 +298,7 @@ export type Database = {
           id?: string
           presente: boolean
           school_id?: string
+          situacao?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -150,6 +309,7 @@ export type Database = {
           id?: string
           presente?: boolean
           school_id?: string
+          situacao?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -188,7 +348,8 @@ export type Database = {
           disciplina_id: string
           id: string
           justificativa_retroativa: string | null
-          planejamento_proxima_aula: string
+          observacoes: string | null
+          planejamento_proxima_aula: string | null
           school_id: string
           status: string
           turma_id: string
@@ -205,7 +366,8 @@ export type Database = {
           disciplina_id: string
           id?: string
           justificativa_retroativa?: string | null
-          planejamento_proxima_aula: string
+          observacoes?: string | null
+          planejamento_proxima_aula?: string | null
           school_id?: string
           status?: string
           turma_id: string
@@ -222,7 +384,8 @@ export type Database = {
           disciplina_id?: string
           id?: string
           justificativa_retroativa?: string | null
-          planejamento_proxima_aula?: string
+          observacoes?: string | null
+          planejamento_proxima_aula?: string | null
           school_id?: string
           status?: string
           turma_id?: string
@@ -349,6 +512,79 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      matriculas: {
+        Row: {
+          aluno_id: string
+          ano_letivo: number
+          codigo_publico: string | null
+          created_at: string
+          created_by: string | null
+          data_matricula: string
+          deleted_at: string | null
+          id: string
+          observacoes: string | null
+          school_id: string
+          status: string
+          turma_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aluno_id: string
+          ano_letivo: number
+          codigo_publico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_matricula?: string
+          deleted_at?: string | null
+          id?: string
+          observacoes?: string | null
+          school_id?: string
+          status?: string
+          turma_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aluno_id?: string
+          ano_letivo?: number
+          codigo_publico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_matricula?: string
+          deleted_at?: string | null
+          id?: string
+          observacoes?: string | null
+          school_id?: string
+          status?: string
+          turma_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matriculas_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       professores: {
         Row: {
