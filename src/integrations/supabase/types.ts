@@ -248,6 +248,7 @@ export type Database = {
           ativo: boolean
           carga_horaria: number | null
           created_at: string
+          deleted_at: string | null
           descricao: string | null
           frequencia_minima: number
           id: string
@@ -259,6 +260,7 @@ export type Database = {
           ativo?: boolean
           carga_horaria?: number | null
           created_at?: string
+          deleted_at?: string | null
           descricao?: string | null
           frequencia_minima?: number
           id?: string
@@ -270,6 +272,7 @@ export type Database = {
           ativo?: boolean
           carga_horaria?: number | null
           created_at?: string
+          deleted_at?: string | null
           descricao?: string | null
           frequencia_minima?: number
           id?: string
@@ -586,11 +589,110 @@ export type Database = {
           },
         ]
       }
+      mensalidades: {
+        Row: {
+          aluno_id: string
+          codigo_publico: string | null
+          competencia: string | null
+          created_at: string
+          created_by: string | null
+          data_pagamento: string | null
+          deleted_at: string | null
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string
+          matricula_id: string | null
+          observacoes: string | null
+          responsavel_id: string | null
+          school_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: number
+          valor_pago: number | null
+          vencimento: string
+        }
+        Insert: {
+          aluno_id: string
+          codigo_publico?: string | null
+          competencia?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento?: string | null
+          deleted_at?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          matricula_id?: string | null
+          observacoes?: string | null
+          responsavel_id?: string | null
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          valor_pago?: number | null
+          vencimento: string
+        }
+        Update: {
+          aluno_id?: string
+          codigo_publico?: string | null
+          competencia?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento?: string | null
+          deleted_at?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          matricula_id?: string | null
+          observacoes?: string | null
+          responsavel_id?: string | null
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          valor_pago?: number | null
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensalidades_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensalidades_matricula_id_fkey"
+            columns: ["matricula_id"]
+            isOneToOne: false
+            referencedRelation: "matriculas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensalidades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "responsaveis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensalidades_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professores: {
         Row: {
           ativo: boolean
           cpf: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           nome: string
           telefone: string | null
@@ -600,6 +702,7 @@ export type Database = {
           ativo?: boolean
           cpf?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           nome: string
           telefone?: string | null
@@ -609,6 +712,7 @@ export type Database = {
           ativo?: boolean
           cpf?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           nome?: string
           telefone?: string | null
@@ -650,6 +754,7 @@ export type Database = {
         Row: {
           cpf: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           id: string
           nome: string
@@ -659,6 +764,7 @@ export type Database = {
         Insert: {
           cpf?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           nome: string
@@ -668,6 +774,7 @@ export type Database = {
         Update: {
           cpf?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           nome?: string
@@ -684,6 +791,7 @@ export type Database = {
           curso_id: string
           data_inicio: string | null
           data_termino: string | null
+          deleted_at: string | null
           dias_semana: string[]
           horario: string | null
           id: string
@@ -699,6 +807,7 @@ export type Database = {
           curso_id: string
           data_inicio?: string | null
           data_termino?: string | null
+          deleted_at?: string | null
           dias_semana?: string[]
           horario?: string | null
           id?: string
@@ -714,6 +823,7 @@ export type Database = {
           curso_id?: string
           data_inicio?: string | null
           data_termino?: string | null
+          deleted_at?: string | null
           dias_semana?: string[]
           horario?: string | null
           id?: string
