@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated/turmas'
 import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated/responsaveis'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenticated/professores'
 import { Route as AuthenticatedMatriculasRouteImport } from './routes/_authenticated/matriculas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
@@ -54,6 +55,11 @@ const AuthenticatedResponsaveisRoute =
     path: '/responsaveis',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfessoresRoute =
   AuthenticatedProfessoresRouteImport.update({
     id: '/professores',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/matriculas': typeof AuthenticatedMatriculasRoute
   '/_authenticated/professores': typeof AuthenticatedProfessoresRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/_authenticated/turmas': typeof AuthenticatedTurmasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/matriculas'
     | '/professores'
+    | '/relatorios'
     | '/responsaveis'
     | '/turmas'
     | '/usuarios'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/matriculas'
     | '/professores'
+    | '/relatorios'
     | '/responsaveis'
     | '/turmas'
     | '/usuarios'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/financeiro'
     | '/_authenticated/matriculas'
     | '/_authenticated/professores'
+    | '/_authenticated/relatorios'
     | '/_authenticated/responsaveis'
     | '/_authenticated/turmas'
     | '/_authenticated/usuarios'
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/responsaveis'
       fullPath: '/responsaveis'
       preLoaderRoute: typeof AuthenticatedResponsaveisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/professores': {
@@ -311,6 +330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedMatriculasRoute: typeof AuthenticatedMatriculasRoute
   AuthenticatedProfessoresRoute: typeof AuthenticatedProfessoresRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
   AuthenticatedTurmasRoute: typeof AuthenticatedTurmasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
@@ -325,6 +345,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedMatriculasRoute: AuthenticatedMatriculasRoute,
   AuthenticatedProfessoresRoute: AuthenticatedProfessoresRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
   AuthenticatedTurmasRoute: AuthenticatedTurmasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
