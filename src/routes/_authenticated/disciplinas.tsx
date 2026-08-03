@@ -69,7 +69,7 @@ function DisciplinasPage() {
     queryKey: ["turmas-opts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("turmas").select("id, nome, codigo_publico").order("nome");
+        .from("turmas").select("id, nome, codigo_publico").is("deleted_at", null).order("nome");
       if (error) throw error;
       return (data ?? []) as TurmaOpt[];
     },
@@ -79,7 +79,7 @@ function DisciplinasPage() {
     queryKey: ["professores-opts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("professores").select("id, nome, ativo").eq("ativo", true).order("nome");
+        .from("professores").select("id, nome, ativo").is("deleted_at", null).eq("ativo", true).order("nome");
       if (error) throw error;
       return (data ?? []) as ProfOpt[];
     },
