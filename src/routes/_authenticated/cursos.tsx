@@ -115,11 +115,23 @@ function CursosPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const softDelete = useMutation({
+    mutationFn: async (c: Curso) => {
+      const { error } = await supabase
+        .from("cursos")
+        .update({ deleted_at: new Date().toISOString(), ativo: false })
+        .eq("id", c.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Curso excluído");
+      qc.invalidateQueries({ queryKey: ["cursos"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const filtered = useMemo(() => {
     const rows = cursosQuery.data ?? [];
-
-    return rows;
-  }, [cursosQuery.data]);
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
     return rows.filter((r) => r.nome.toLowerCase().includes(q));
