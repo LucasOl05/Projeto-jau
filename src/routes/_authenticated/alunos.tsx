@@ -156,6 +156,7 @@ function AlunosPage() {
       const { data, error } = await supabase
         .from("responsaveis")
         .select("id, nome, cpf")
+        .is("deleted_at", null)
         .order("nome");
       if (error) throw error;
       return (data ?? []) as Responsavel[];
@@ -227,7 +228,10 @@ function AlunosPage() {
 
   const deleteAluno = useMutation({
     mutationFn: async (a: Aluno) => {
-      const { error } = await supabase.from("alunos").delete().eq("id", a.id);
+      const { error } = await supabase
+        .from("alunos")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", a.id);
       if (error) throw error;
     },
     onSuccess: () => {
