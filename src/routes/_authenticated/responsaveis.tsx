@@ -108,9 +108,23 @@ function ResponsaveisPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const softDelete = useMutation({
+    mutationFn: async (r: Responsavel) => {
+      const { error } = await supabase
+        .from("responsaveis")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", r.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Responsável excluído");
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const filtered = useMemo(() => {
     const rows = responsaveisQuery.data ?? [];
-    void 0;
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
     const qDigits = onlyDigits(query);
@@ -206,7 +220,7 @@ function ResponsaveisPage() {
                   <TableCell className="text-muted-foreground">{r.telefone ? maskPhone(r.telefone) : "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{r.email ?? "—"}</TableCell>
                   {isAdmin && (
-                    <TableCell className="text-right">
+                    <TableCell className="space-x-1 text-right">
                       <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
