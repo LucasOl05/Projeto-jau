@@ -68,7 +68,7 @@ function DiarioPage() {
     queryKey: ["turmas-lite"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("turmas").select("id, nome, codigo_publico").eq("ativo", true).order("nome");
+        .from("turmas").select("id, nome, codigo_publico").is("deleted_at", null).eq("ativo", true).order("nome");
       if (error) throw error;
       return (data ?? []) as Turma[];
     },
