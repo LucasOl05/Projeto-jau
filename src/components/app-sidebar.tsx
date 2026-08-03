@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake, ClipboardCheck, Library, FileSignature } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake, ClipboardCheck, Library, FileSignature, Wallet, FileText, Smartphone } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 import {
@@ -26,6 +26,9 @@ const items = [
   { title: "Matrículas", url: "/matriculas", icon: FileSignature },
   { title: "Responsáveis", url: "/responsaveis", icon: HeartHandshake },
   { title: "Diário de Classe", url: "/diario", icon: ClipboardCheck },
+  { title: "Financeiro", url: "/financeiro", icon: Wallet },
+  { title: "Relatórios", url: "/relatorios", icon: FileText },
+  { title: "Portal do Aluno", url: "/portal", icon: Smartphone },
 ];
 
 export function AppSidebar() {

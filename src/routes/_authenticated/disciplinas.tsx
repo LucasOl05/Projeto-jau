@@ -69,7 +69,7 @@ function DisciplinasPage() {
     queryKey: ["turmas-opts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("turmas").select("id, nome, codigo_publico").order("nome");
+        .from("turmas").select("id, nome, codigo_publico").is("deleted_at", null).order("nome");
       if (error) throw error;
       return (data ?? []) as TurmaOpt[];
     },
@@ -79,7 +79,7 @@ function DisciplinasPage() {
     queryKey: ["professores-opts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("professores").select("id, nome, ativo").eq("ativo", true).order("nome");
+        .from("professores").select("id, nome, ativo").is("deleted_at", null).eq("ativo", true).order("nome");
       if (error) throw error;
       return (data ?? []) as ProfOpt[];
     },
@@ -123,7 +123,10 @@ function DisciplinasPage() {
 
   const softDelete = useMutation({
     mutationFn: async (d: Disciplina) => {
-      const { error } = await supabase.from("disciplinas").delete().eq("id", d.id);
+      const { error } = await supabase
+        .from("disciplinas")
+        .update({ deleted_at: new Date().toISOString(), status: "Excluído", ativo: false })
+        .eq("id", d.id);
       if (error) throw error;
     },
     onSuccess: () => {

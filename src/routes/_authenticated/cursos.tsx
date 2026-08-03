@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Power } from "lucide-react";
+import { Search, Plus, Pencil, Power, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -70,6 +70,7 @@ function CursosPage() {
       const { data, error } = await supabase
         .from("cursos")
         .select("*")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Curso[];
@@ -109,6 +110,21 @@ function CursosPage() {
     },
     onSuccess: (_d, c) => {
       toast.success(c.ativo ? "Curso desativado" : "Curso ativado");
+      qc.invalidateQueries({ queryKey: ["cursos"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const softDelete = useMutation({
+    mutationFn: async (c: Curso) => {
+      const { error } = await supabase
+        .from("cursos")
+        .update({ deleted_at: new Date().toISOString(), ativo: false })
+        .eq("id", c.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Curso excluído");
       qc.invalidateQueries({ queryKey: ["cursos"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -223,6 +239,15 @@ function CursosPage() {
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleAtivo.mutate(c)}>
                         <Power className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir o curso "${c.nome}"?`)) softDelete.mutate(c);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

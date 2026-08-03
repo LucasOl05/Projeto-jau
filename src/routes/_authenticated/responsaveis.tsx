@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil } from "lucide-react";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -60,6 +60,7 @@ function ResponsaveisPage() {
       const { data, error } = await supabase
         .from("responsaveis")
         .select("*")
+        .is("deleted_at", null)
         .order("nome", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Responsavel[];
@@ -103,6 +104,21 @@ function ResponsaveisPage() {
       qc.invalidateQueries({ queryKey: ["responsaveis"] });
       setOpen(false);
       setForm(emptyForm);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const softDelete = useMutation({
+    mutationFn: async (r: Responsavel) => {
+      const { error } = await supabase
+        .from("responsaveis")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", r.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Responsável excluído");
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -204,9 +220,18 @@ function ResponsaveisPage() {
                   <TableCell className="text-muted-foreground">{r.telefone ? maskPhone(r.telefone) : "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{r.email ?? "—"}</TableCell>
                   {isAdmin && (
-                    <TableCell className="text-right">
+                    <TableCell className="space-x-1 text-right">
                       <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir o responsável "${r.nome}"?`)) softDelete.mutate(r);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   )}

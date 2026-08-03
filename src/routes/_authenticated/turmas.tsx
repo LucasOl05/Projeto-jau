@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Power } from "lucide-react";
+import { Search, Plus, Pencil, Power, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -89,6 +89,7 @@ function TurmasPage() {
       const { data, error } = await supabase
         .from("turmas")
         .select("*")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Turma[];
@@ -98,7 +99,11 @@ function TurmasPage() {
   const cursosQuery = useQuery({
     queryKey: ["cursos", "opts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("cursos").select("id, nome, ativo").order("nome");
+      const { data, error } = await supabase
+        .from("cursos")
+        .select("id, nome, ativo")
+        .is("deleted_at", null)
+        .order("nome");
       if (error) throw error;
       return (data ?? []) as CursoOpt[];
     },
@@ -145,6 +150,21 @@ function TurmasPage() {
     },
     onSuccess: (_d, t) => {
       toast.success(t.ativo ? "Turma fechada" : "Turma reaberta");
+      qc.invalidateQueries({ queryKey: ["turmas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const softDelete = useMutation({
+    mutationFn: async (t: Turma) => {
+      const { error } = await supabase
+        .from("turmas")
+        .update({ deleted_at: new Date().toISOString(), ativo: false })
+        .eq("id", t.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Turma excluída");
       qc.invalidateQueries({ queryKey: ["turmas"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -281,6 +301,15 @@ function TurmasPage() {
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleAtivo.mutate(t)}>
                         <Power className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir a turma "${t.nome}"?`)) softDelete.mutate(t);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

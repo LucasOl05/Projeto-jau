@@ -15,8 +15,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated/turmas'
 import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated/responsaveis'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenticated/professores'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedMatriculasRouteImport } from './routes/_authenticated/matriculas'
+import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedDisciplinasRouteImport } from './routes/_authenticated/disciplinas'
 import { Route as AuthenticatedDiarioRouteImport } from './routes/_authenticated/diario'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -53,15 +56,30 @@ const AuthenticatedResponsaveisRoute =
     path: '/responsaveis',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfessoresRoute =
   AuthenticatedProfessoresRouteImport.update({
     id: '/professores',
     path: '/professores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMatriculasRoute = AuthenticatedMatriculasRouteImport.update({
   id: '/matriculas',
   path: '/matriculas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDisciplinasRoute =
@@ -99,8 +117,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -113,8 +134,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/professores': typeof AuthenticatedProfessoresRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/turmas': typeof AuthenticatedTurmasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -129,8 +153,11 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/diario': typeof AuthenticatedDiarioRoute
   '/_authenticated/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/matriculas': typeof AuthenticatedMatriculasRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/professores': typeof AuthenticatedProfessoresRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
   '/_authenticated/turmas': typeof AuthenticatedTurmasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
@@ -145,8 +172,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/financeiro'
     | '/matriculas'
+    | '/portal'
     | '/professores'
+    | '/relatorios'
     | '/responsaveis'
     | '/turmas'
     | '/usuarios'
@@ -159,8 +189,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/financeiro'
     | '/matriculas'
+    | '/portal'
     | '/professores'
+    | '/relatorios'
     | '/responsaveis'
     | '/turmas'
     | '/usuarios'
@@ -174,8 +207,11 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/diario'
     | '/_authenticated/disciplinas'
+    | '/_authenticated/financeiro'
     | '/_authenticated/matriculas'
+    | '/_authenticated/portal'
     | '/_authenticated/professores'
+    | '/_authenticated/relatorios'
     | '/_authenticated/responsaveis'
     | '/_authenticated/turmas'
     | '/_authenticated/usuarios'
@@ -231,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResponsaveisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/professores': {
       id: '/_authenticated/professores'
       path: '/professores'
@@ -238,11 +281,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfessoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/matriculas': {
       id: '/_authenticated/matriculas'
       path: '/matriculas'
       fullPath: '/matriculas'
       preLoaderRoute: typeof AuthenticatedMatriculasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financeiro': {
+      id: '/_authenticated/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/disciplinas': {
@@ -289,8 +346,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiarioRoute: typeof AuthenticatedDiarioRoute
   AuthenticatedDisciplinasRoute: typeof AuthenticatedDisciplinasRoute
+  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedMatriculasRoute: typeof AuthenticatedMatriculasRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedProfessoresRoute: typeof AuthenticatedProfessoresRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
   AuthenticatedTurmasRoute: typeof AuthenticatedTurmasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
@@ -302,8 +362,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiarioRoute: AuthenticatedDiarioRoute,
   AuthenticatedDisciplinasRoute: AuthenticatedDisciplinasRoute,
+  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedMatriculasRoute: AuthenticatedMatriculasRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedProfessoresRoute: AuthenticatedProfessoresRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
   AuthenticatedTurmasRoute: AuthenticatedTurmasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,

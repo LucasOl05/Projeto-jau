@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Power } from "lucide-react";
+import { Search, Plus, Pencil, Power, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -59,6 +59,7 @@ function ProfessoresPage() {
       const { data, error } = await supabase
         .from("professores")
         .select("*")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Professor[];
@@ -96,6 +97,21 @@ function ProfessoresPage() {
     },
     onSuccess: (_d, p) => {
       toast.success(p.ativo ? "Professor desativado" : "Professor ativado");
+      qc.invalidateQueries({ queryKey: ["professores"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const softDelete = useMutation({
+    mutationFn: async (p: Professor) => {
+      const { error } = await supabase
+        .from("professores")
+        .update({ deleted_at: new Date().toISOString(), ativo: false })
+        .eq("id", p.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Professor excluído");
       qc.invalidateQueries({ queryKey: ["professores"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -201,6 +217,15 @@ function ProfessoresPage() {
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleAtivo.mutate(p)}>
                         <Power className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir o professor "${p.nome}"?`)) softDelete.mutate(p);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

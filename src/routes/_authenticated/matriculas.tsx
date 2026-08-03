@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { isValidCPF, maskCPF, maskPhone, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/matriculas")({
   head: () => ({
@@ -36,6 +37,8 @@ export const Route = createFileRoute("/_authenticated/matriculas")({
 
 const STATUS = ["Ativa", "Trancada", "Concluída", "Cancelada"] as const;
 type StatusMat = (typeof STATUS)[number];
+
+const PARENTESCOS = ["Mãe", "Pai", "Tutor", "Responsável Financeiro"] as const;
 
 type Matricula = {
   id: string;
@@ -78,6 +81,11 @@ function MatriculasPage() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
+  const [novoAluno, setNovoAluno] = useState(false);
+  const [novoResp, setNovoResp] = useState(false);
+  const [alunoNovo, setAlunoNovo] = useState({ nome: "", cpf: "", codigo_publico: "" });
+  const [respSel, setRespSel] = useState("");
+  const [respNovo, setRespNovo] = useState({ nome: "", telefone: "", parentesco: "Mãe" as string });
 
   const listQuery = useQuery({
     queryKey: ["matriculas"],
@@ -113,6 +121,7 @@ function MatriculasPage() {
       const { data, error } = await supabase
         .from("turmas")
         .select("id, nome, codigo_publico")
+        .is("deleted_at", null)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
@@ -122,8 +131,55 @@ function MatriculasPage() {
 
   const upsert = useMutation({
     mutationFn: async (f: FormState) => {
+      let alunoId = f.aluno_id;
+
+      if (novoAluno) {
+        const cpfDigits = onlyDigits(alunoNovo.cpf);
+        if (cpfDigits && !isValidCPF(cpfDigits)) throw new Error("CPF do aluno inválido.");
+        if (!alunoNovo.nome.trim()) throw new Error("Informe o nome do novo aluno.");
+
+        // 1) Responsável (novo ou existente)
+        let responsavelId = respSel || "";
+        if (novoResp) {
+          if (!respNovo.nome.trim()) throw new Error("Informe o nome do responsável.");
+          const { data: r, error: rErr } = await supabase
+            .from("responsaveis")
+            .insert({
+              nome: respNovo.nome.trim(),
+              telefone: onlyDigits(respNovo.telefone) || null,
+            })
+            .select("id")
+            .single();
+          if (rErr) throw rErr;
+          responsavelId = r.id;
+        }
+
+        // 2) Aluno
+        const { data: a, error: aErr } = await supabase
+          .from("alunos")
+          .insert({
+            nome: alunoNovo.nome.trim(),
+            cpf: cpfDigits || null,
+            status: "Ativo",
+            ...(alunoNovo.codigo_publico.trim() ? { codigo_publico: alunoNovo.codigo_publico.trim() } : {}),
+          })
+          .select("id")
+          .single();
+        if (aErr) throw aErr;
+        alunoId = a.id;
+
+        // 3) Vínculo N:N
+        if (responsavelId) {
+          const { error: vErr } = await supabase.from("aluno_responsavel").upsert(
+            { aluno_id: alunoId, responsavel_id: responsavelId, parentesco: respNovo.parentesco },
+            { onConflict: "aluno_id,responsavel_id" },
+          );
+          if (vErr) throw vErr;
+        }
+      }
+
       const payload = {
-        aluno_id: f.aluno_id,
+        aluno_id: alunoId,
         turma_id: f.turma_id,
         ano_letivo: Number(f.ano_letivo),
         data_matricula: f.data_matricula,
@@ -142,15 +198,43 @@ function MatriculasPage() {
     onSuccess: () => {
       toast.success("Matrícula salva");
       qc.invalidateQueries({ queryKey: ["matriculas"] });
+      qc.invalidateQueries({ queryKey: ["alunos-opts"] });
+      qc.invalidateQueries({ queryKey: ["alunos"] });
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
       setOpen(false);
       setForm(emptyForm());
+      resetQuick();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const responsaveisQuery = useQuery({
+    queryKey: ["responsaveis-opts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("responsaveis")
+        .select("id, nome")
+        .is("deleted_at", null)
+        .order("nome");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  function resetQuick() {
+    setNovoAluno(false);
+    setNovoResp(false);
+    setAlunoNovo({ nome: "", cpf: "", codigo_publico: "" });
+    setRespSel("");
+    setRespNovo({ nome: "", telefone: "", parentesco: "Mãe" });
+  }
+
   const remove = useMutation({
     mutationFn: async (m: Matricula) => {
-      const { error } = await supabase.from("matriculas").delete().eq("id", m.id);
+      const { error } = await supabase
+        .from("matriculas")
+        .update({ deleted_at: new Date().toISOString(), status: "Cancelada" })
+        .eq("id", m.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -173,8 +257,9 @@ function MatriculasPage() {
     );
   }, [listQuery.data, query]);
 
-  function openNew() { setForm(emptyForm()); setOpen(true); }
+  function openNew() { setForm(emptyForm()); resetQuick(); setOpen(true); }
   function openEdit(m: Matricula) {
+    resetQuick();
     setForm({
       id: m.id,
       codigo_publico: m.codigo_publico ?? "",
@@ -190,7 +275,8 @@ function MatriculasPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.aluno_id) return toast.error("Selecione o aluno");
+    if (!novoAluno && !form.aluno_id) return toast.error("Selecione o aluno");
+    if (novoAluno && !alunoNovo.nome.trim()) return toast.error("Informe o nome do novo aluno");
     if (!form.turma_id) return toast.error("Selecione a turma");
     if (!/^\d{4}$/.test(form.ano_letivo)) return toast.error("Ano letivo inválido");
     upsert.mutate(form);
@@ -289,16 +375,101 @@ function MatriculasPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Aluno *</Label>
-              <Select value={form.aluno_id} onValueChange={(v) => setForm({ ...form, aluno_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione o aluno" /></SelectTrigger>
-                <SelectContent>
-                  {(alunosQuery.data ?? []).map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.codigo_publico ? `${a.codigo_publico} — ` : ""}{a.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                {!novoAluno && (
+                  <Select value={form.aluno_id} onValueChange={(v) => setForm({ ...form, aluno_id: v })}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione o aluno" /></SelectTrigger>
+                    <SelectContent>
+                      {(alunosQuery.data ?? []).map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.codigo_publico ? `${a.codigo_publico} — ` : ""}{a.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button
+                  type="button"
+                  variant={novoAluno ? "secondary" : "outline"}
+                  className={novoAluno ? "flex-1" : "shrink-0"}
+                  onClick={() => { setNovoAluno(!novoAluno); setForm({ ...form, aluno_id: "" }); }}
+                >
+                  {novoAluno ? "Selecionar aluno existente" : "+ Cadastrar novo aluno"}
+                </Button>
+              </div>
+            </div>
+
+            {novoAluno && (
+              <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="an-nome">Nome do aluno *</Label>
+                    <Input id="an-nome" value={alunoNovo.nome} onChange={(e) => setAlunoNovo({ ...alunoNovo, nome: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="an-cpf">CPF (opcional)</Label>
+                    <Input id="an-cpf" inputMode="numeric" value={alunoNovo.cpf}
+                      onChange={(e) => setAlunoNovo({ ...alunoNovo, cpf: maskCPF(e.target.value) })} placeholder="000.000.000-00" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="an-cod">Matrícula / código (opcional)</Label>
+                  <Input id="an-cod" value={alunoNovo.codigo_publico}
+                    onChange={(e) => setAlunoNovo({ ...alunoNovo, codigo_publico: e.target.value })} placeholder="Auto (ALU-000001)" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Responsável</Label>
+                  <div className="flex gap-2">
+                    {!novoResp && (
+                      <Select value={respSel} onValueChange={setRespSel}>
+                        <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                        <SelectContent>
+                          {(responsaveisQuery.data ?? []).map((r) => (
+                            <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button
+                      type="button"
+                      variant={novoResp ? "secondary" : "outline"}
+                      className={novoResp ? "flex-1" : "shrink-0"}
+                      onClick={() => { setNovoResp(!novoResp); setRespSel(""); }}
+                    >
+                      {novoResp ? "Selecionar existente" : "+ Cadastrar novo responsável"}
+                    </Button>
+                  </div>
+                </div>
+
+                {novoResp && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="rn-nome">Nome do responsável *</Label>
+                      <Input id="rn-nome" value={respNovo.nome} onChange={(e) => setRespNovo({ ...respNovo, nome: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rn-tel">Telefone</Label>
+                      <Input id="rn-tel" inputMode="tel" value={respNovo.telefone}
+                        onChange={(e) => setRespNovo({ ...respNovo, telefone: maskPhone(e.target.value) })} placeholder="(00) 00000-0000" />
+                    </div>
+                  </div>
+                )}
+
+                {(novoResp || respSel) && (
+                  <div className="space-y-2">
+                    <Label>Parentesco</Label>
+                    <Select value={respNovo.parentesco} onValueChange={(v) => setRespNovo({ ...respNovo, parentesco: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCOS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
             </div>
             <div className="space-y-2">
               <Label>Turma *</Label>
