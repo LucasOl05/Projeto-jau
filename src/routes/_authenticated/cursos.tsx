@@ -70,6 +70,7 @@ function CursosPage() {
       const { data, error } = await supabase
         .from("cursos")
         .select("*")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Curso[];
@@ -223,6 +224,15 @@ function CursosPage() {
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleAtivo.mutate(c)}>
                         <Power className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir o curso "${c.nome}"?`)) softDelete.mutate(c);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
