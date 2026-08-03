@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { isValidCPF, maskCPF, maskPhone, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/matriculas")({
   head: () => ({
@@ -36,6 +37,8 @@ export const Route = createFileRoute("/_authenticated/matriculas")({
 
 const STATUS = ["Ativa", "Trancada", "Concluída", "Cancelada"] as const;
 type StatusMat = (typeof STATUS)[number];
+
+const PARENTESCOS = ["Mãe", "Pai", "Tutor", "Responsável Financeiro"] as const;
 
 type Matricula = {
   id: string;
@@ -78,6 +81,11 @@ function MatriculasPage() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
+  const [novoAluno, setNovoAluno] = useState(false);
+  const [novoResp, setNovoResp] = useState(false);
+  const [alunoNovo, setAlunoNovo] = useState({ nome: "", cpf: "", codigo_publico: "" });
+  const [respSel, setRespSel] = useState("");
+  const [respNovo, setRespNovo] = useState({ nome: "", telefone: "", parentesco: "Mãe" as string });
 
   const listQuery = useQuery({
     queryKey: ["matriculas"],
@@ -123,8 +131,55 @@ function MatriculasPage() {
 
   const upsert = useMutation({
     mutationFn: async (f: FormState) => {
+      let alunoId = f.aluno_id;
+
+      if (novoAluno) {
+        const cpfDigits = onlyDigits(alunoNovo.cpf);
+        if (cpfDigits && !isValidCPF(cpfDigits)) throw new Error("CPF do aluno inválido.");
+        if (!alunoNovo.nome.trim()) throw new Error("Informe o nome do novo aluno.");
+
+        // 1) Responsável (novo ou existente)
+        let responsavelId = respSel || "";
+        if (novoResp) {
+          if (!respNovo.nome.trim()) throw new Error("Informe o nome do responsável.");
+          const { data: r, error: rErr } = await supabase
+            .from("responsaveis")
+            .insert({
+              nome: respNovo.nome.trim(),
+              telefone: onlyDigits(respNovo.telefone) || null,
+            })
+            .select("id")
+            .single();
+          if (rErr) throw rErr;
+          responsavelId = r.id;
+        }
+
+        // 2) Aluno
+        const { data: a, error: aErr } = await supabase
+          .from("alunos")
+          .insert({
+            nome: alunoNovo.nome.trim(),
+            cpf: cpfDigits || null,
+            status: "Ativo",
+            ...(alunoNovo.codigo_publico.trim() ? { codigo_publico: alunoNovo.codigo_publico.trim() } : {}),
+          })
+          .select("id")
+          .single();
+        if (aErr) throw aErr;
+        alunoId = a.id;
+
+        // 3) Vínculo N:N
+        if (responsavelId) {
+          const { error: vErr } = await supabase.from("aluno_responsavel").upsert(
+            { aluno_id: alunoId, responsavel_id: responsavelId, parentesco: respNovo.parentesco },
+            { onConflict: "aluno_id,responsavel_id" },
+          );
+          if (vErr) throw vErr;
+        }
+      }
+
       const payload = {
-        aluno_id: f.aluno_id,
+        aluno_id: alunoId,
         turma_id: f.turma_id,
         ano_letivo: Number(f.ano_letivo),
         data_matricula: f.data_matricula,
@@ -143,11 +198,36 @@ function MatriculasPage() {
     onSuccess: () => {
       toast.success("Matrícula salva");
       qc.invalidateQueries({ queryKey: ["matriculas"] });
+      qc.invalidateQueries({ queryKey: ["alunos-opts"] });
+      qc.invalidateQueries({ queryKey: ["alunos"] });
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
       setOpen(false);
       setForm(emptyForm());
+      resetQuick();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const responsaveisQuery = useQuery({
+    queryKey: ["responsaveis-opts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("responsaveis")
+        .select("id, nome")
+        .is("deleted_at", null)
+        .order("nome");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  function resetQuick() {
+    setNovoAluno(false);
+    setNovoResp(false);
+    setAlunoNovo({ nome: "", cpf: "", codigo_publico: "" });
+    setRespSel("");
+    setRespNovo({ nome: "", telefone: "", parentesco: "Mãe" });
+  }
 
   const remove = useMutation({
     mutationFn: async (m: Matricula) => {
@@ -177,8 +257,9 @@ function MatriculasPage() {
     );
   }, [listQuery.data, query]);
 
-  function openNew() { setForm(emptyForm()); setOpen(true); }
+  function openNew() { setForm(emptyForm()); resetQuick(); setOpen(true); }
   function openEdit(m: Matricula) {
+    resetQuick();
     setForm({
       id: m.id,
       codigo_publico: m.codigo_publico ?? "",
@@ -194,7 +275,8 @@ function MatriculasPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.aluno_id) return toast.error("Selecione o aluno");
+    if (!novoAluno && !form.aluno_id) return toast.error("Selecione o aluno");
+    if (novoAluno && !alunoNovo.nome.trim()) return toast.error("Informe o nome do novo aluno");
     if (!form.turma_id) return toast.error("Selecione a turma");
     if (!/^\d{4}$/.test(form.ano_letivo)) return toast.error("Ano letivo inválido");
     upsert.mutate(form);
