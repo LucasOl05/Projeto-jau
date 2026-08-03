@@ -117,6 +117,9 @@ function CursosPage() {
 
   const filtered = useMemo(() => {
     const rows = cursosQuery.data ?? [];
+
+    return rows;
+  }, [cursosQuery.data]);
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
     return rows.filter((r) => r.nome.toLowerCase().includes(q));

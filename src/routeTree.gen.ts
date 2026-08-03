@@ -17,6 +17,7 @@ import { Route as AuthenticatedTurmasRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated/responsaveis'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenticated/professores'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedMatriculasRouteImport } from './routes/_authenticated/matriculas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedDisciplinasRouteImport } from './routes/_authenticated/disciplinas'
@@ -66,6 +67,11 @@ const AuthenticatedProfessoresRoute =
     path: '/professores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMatriculasRoute = AuthenticatedMatriculasRouteImport.update({
   id: '/matriculas',
   path: '/matriculas',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/professores': typeof AuthenticatedProfessoresRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/professores': typeof AuthenticatedProfessoresRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/responsaveis': typeof AuthenticatedResponsaveisRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/disciplinas': typeof AuthenticatedDisciplinasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/matriculas': typeof AuthenticatedMatriculasRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/professores': typeof AuthenticatedProfessoresRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/disciplinas'
     | '/financeiro'
     | '/matriculas'
+    | '/portal'
     | '/professores'
     | '/relatorios'
     | '/responsaveis'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/disciplinas'
     | '/financeiro'
     | '/matriculas'
+    | '/portal'
     | '/professores'
     | '/relatorios'
     | '/responsaveis'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/disciplinas'
     | '/_authenticated/financeiro'
     | '/_authenticated/matriculas'
+    | '/_authenticated/portal'
     | '/_authenticated/professores'
     | '/_authenticated/relatorios'
     | '/_authenticated/responsaveis'
@@ -269,6 +281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfessoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/matriculas': {
       id: '/_authenticated/matriculas'
       path: '/matriculas'
@@ -329,6 +348,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDisciplinasRoute: typeof AuthenticatedDisciplinasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedMatriculasRoute: typeof AuthenticatedMatriculasRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedProfessoresRoute: typeof AuthenticatedProfessoresRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
@@ -344,6 +364,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDisciplinasRoute: AuthenticatedDisciplinasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedMatriculasRoute: AuthenticatedMatriculasRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedProfessoresRoute: AuthenticatedProfessoresRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
