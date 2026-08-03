@@ -150,7 +150,10 @@ function MatriculasPage() {
 
   const remove = useMutation({
     mutationFn: async (m: Matricula) => {
-      const { error } = await supabase.from("matriculas").delete().eq("id", m.id);
+      const { error } = await supabase
+        .from("matriculas")
+        .update({ deleted_at: new Date().toISOString(), status: "Cancelada" })
+        .eq("id", m.id);
       if (error) throw error;
     },
     onSuccess: () => {
