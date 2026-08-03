@@ -123,7 +123,10 @@ function DisciplinasPage() {
 
   const softDelete = useMutation({
     mutationFn: async (d: Disciplina) => {
-      const { error } = await supabase.from("disciplinas").delete().eq("id", d.id);
+      const { error } = await supabase
+        .from("disciplinas")
+        .update({ deleted_at: new Date().toISOString(), status: "Excluído", ativo: false })
+        .eq("id", d.id);
       if (error) throw error;
     },
     onSuccess: () => {
