@@ -113,6 +113,7 @@ function MatriculasPage() {
       const { data, error } = await supabase
         .from("turmas")
         .select("id, nome, codigo_publico")
+        .is("deleted_at", null)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
