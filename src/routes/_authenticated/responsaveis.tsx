@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil } from "lucide-react";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -60,6 +60,7 @@ function ResponsaveisPage() {
       const { data, error } = await supabase
         .from("responsaveis")
         .select("*")
+        .is("deleted_at", null)
         .order("nome", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Responsavel[];
@@ -109,6 +110,7 @@ function ResponsaveisPage() {
 
   const filtered = useMemo(() => {
     const rows = responsaveisQuery.data ?? [];
+    void 0;
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
     const qDigits = onlyDigits(query);
@@ -207,6 +209,15 @@ function ResponsaveisPage() {
                     <TableCell className="text-right">
                       <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Excluir o responsável "${r.nome}"?`)) softDelete.mutate(r);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   )}
