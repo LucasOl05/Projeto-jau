@@ -99,7 +99,11 @@ function TurmasPage() {
   const cursosQuery = useQuery({
     queryKey: ["cursos", "opts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("cursos").select("id, nome, ativo").order("nome");
+      const { data, error } = await supabase
+        .from("cursos")
+        .select("id, nome, ativo")
+        .is("deleted_at", null)
+        .order("nome");
       if (error) throw error;
       return (data ?? []) as CursoOpt[];
     },
