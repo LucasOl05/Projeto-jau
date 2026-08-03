@@ -375,16 +375,101 @@ function MatriculasPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Aluno *</Label>
-              <Select value={form.aluno_id} onValueChange={(v) => setForm({ ...form, aluno_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione o aluno" /></SelectTrigger>
-                <SelectContent>
-                  {(alunosQuery.data ?? []).map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.codigo_publico ? `${a.codigo_publico} — ` : ""}{a.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                {!novoAluno && (
+                  <Select value={form.aluno_id} onValueChange={(v) => setForm({ ...form, aluno_id: v })}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione o aluno" /></SelectTrigger>
+                    <SelectContent>
+                      {(alunosQuery.data ?? []).map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.codigo_publico ? `${a.codigo_publico} — ` : ""}{a.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button
+                  type="button"
+                  variant={novoAluno ? "secondary" : "outline"}
+                  className={novoAluno ? "flex-1" : "shrink-0"}
+                  onClick={() => { setNovoAluno(!novoAluno); setForm({ ...form, aluno_id: "" }); }}
+                >
+                  {novoAluno ? "Selecionar aluno existente" : "+ Cadastrar novo aluno"}
+                </Button>
+              </div>
+            </div>
+
+            {novoAluno && (
+              <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="an-nome">Nome do aluno *</Label>
+                    <Input id="an-nome" value={alunoNovo.nome} onChange={(e) => setAlunoNovo({ ...alunoNovo, nome: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="an-cpf">CPF (opcional)</Label>
+                    <Input id="an-cpf" inputMode="numeric" value={alunoNovo.cpf}
+                      onChange={(e) => setAlunoNovo({ ...alunoNovo, cpf: maskCPF(e.target.value) })} placeholder="000.000.000-00" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="an-cod">Matrícula / código (opcional)</Label>
+                  <Input id="an-cod" value={alunoNovo.codigo_publico}
+                    onChange={(e) => setAlunoNovo({ ...alunoNovo, codigo_publico: e.target.value })} placeholder="Auto (ALU-000001)" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Responsável</Label>
+                  <div className="flex gap-2">
+                    {!novoResp && (
+                      <Select value={respSel} onValueChange={setRespSel}>
+                        <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                        <SelectContent>
+                          {(responsaveisQuery.data ?? []).map((r) => (
+                            <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button
+                      type="button"
+                      variant={novoResp ? "secondary" : "outline"}
+                      className={novoResp ? "flex-1" : "shrink-0"}
+                      onClick={() => { setNovoResp(!novoResp); setRespSel(""); }}
+                    >
+                      {novoResp ? "Selecionar existente" : "+ Cadastrar novo responsável"}
+                    </Button>
+                  </div>
+                </div>
+
+                {novoResp && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="rn-nome">Nome do responsável *</Label>
+                      <Input id="rn-nome" value={respNovo.nome} onChange={(e) => setRespNovo({ ...respNovo, nome: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rn-tel">Telefone</Label>
+                      <Input id="rn-tel" inputMode="tel" value={respNovo.telefone}
+                        onChange={(e) => setRespNovo({ ...respNovo, telefone: maskPhone(e.target.value) })} placeholder="(00) 00000-0000" />
+                    </div>
+                  </div>
+                )}
+
+                {(novoResp || respSel) && (
+                  <div className="space-y-2">
+                    <Label>Parentesco</Label>
+                    <Select value={respNovo.parentesco} onValueChange={(v) => setRespNovo({ ...respNovo, parentesco: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCOS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
             </div>
             <div className="space-y-2">
               <Label>Turma *</Label>
