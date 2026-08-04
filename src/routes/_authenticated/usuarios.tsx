@@ -126,9 +126,14 @@ function UsuariosPage() {
 
   const decidir = useMutation({
     mutationFn: async ({ id, status, revogar }: { id: string; status?: string; revogar?: boolean }) => {
-      const patch: Record<string, unknown> = revogar
+      const patch = revogar
         ? { revogado_em: new Date().toISOString() }
-        : { status, decidido_em: new Date().toISOString(), decidido_por: perms.userId, revogado_em: null };
+        : {
+            status: status ?? "Aprovado",
+            decidido_em: new Date().toISOString(),
+            decidido_por: perms.userId,
+            revogado_em: null,
+          };
       const { error } = await supabase.from("solicitacoes_acesso").update(patch).eq("id", id);
       if (error) throw error;
     },
