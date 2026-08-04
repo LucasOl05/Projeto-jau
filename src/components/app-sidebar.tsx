@@ -1,6 +1,22 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Users2, UserCog, GraduationCap, HeartHandshake, ClipboardCheck, Library, FileSignature, Wallet, FileText, Smartphone } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  Users2,
+  UserCog,
+  GraduationCap,
+  HeartHandshake,
+  ClipboardCheck,
+  Library,
+  FileSignature,
+  Wallet,
+  FileText,
+  Smartphone,
+  Settings,
+} from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
+import { usePermissions, type ResourceKey } from "@/hooks/use-permissions";
 
 import {
   Sidebar,
@@ -15,26 +31,51 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Usuários", url: "/usuarios", icon: Users },
-  { title: "Cursos", url: "/cursos", icon: BookOpen },
-  { title: "Turmas", url: "/turmas", icon: Users2 },
-  { title: "Disciplinas", url: "/disciplinas", icon: Library },
-  { title: "Professores", url: "/professores", icon: UserCog },
-  { title: "Alunos", url: "/alunos", icon: GraduationCap },
-  { title: "Matrículas", url: "/matriculas", icon: FileSignature },
-  { title: "Responsáveis", url: "/responsaveis", icon: HeartHandshake },
-  { title: "Diário de Classe", url: "/diario", icon: ClipboardCheck },
-  { title: "Financeiro", url: "/financeiro", icon: Wallet },
-  { title: "Relatórios", url: "/relatorios", icon: FileText },
-  { title: "Portal do Aluno", url: "/portal", icon: Smartphone },
+type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; resource: ResourceKey };
+
+const groups: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Início",
+    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, resource: "dashboard" }],
+  },
+  {
+    label: "Secretaria",
+    items: [
+      { title: "Matrículas", url: "/matriculas", icon: FileSignature, resource: "matriculas" },
+      { title: "Alunos", url: "/alunos", icon: GraduationCap, resource: "alunos" },
+      { title: "Responsáveis", url: "/responsaveis", icon: HeartHandshake, resource: "responsaveis" },
+    ],
+  },
+  {
+    label: "Pedagógico",
+    items: [{ title: "Diário de Classe", url: "/diario", icon: ClipboardCheck, resource: "diario" }],
+  },
+  {
+    label: "Estrutura Escolar",
+    items: [
+      { title: "Cursos", url: "/cursos", icon: BookOpen, resource: "estrutura" },
+      { title: "Turmas", url: "/turmas", icon: Users2, resource: "estrutura" },
+      { title: "Disciplinas", url: "/disciplinas", icon: Library, resource: "estrutura" },
+      { title: "Professores", url: "/professores", icon: UserCog, resource: "estrutura" },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [
+      { title: "Financeiro", url: "/financeiro", icon: Wallet, resource: "financeiro" },
+      { title: "Relatórios", url: "/relatorios", icon: FileText, resource: "relatorios" },
+      { title: "Portal do Aluno", url: "/portal", icon: Smartphone, resource: "portal" },
+      { title: "Usuários", url: "/usuarios", icon: Users, resource: "usuarios" },
+      { title: "Configurações", url: "/configuracoes", icon: Settings, resource: "configuracoes" },
+    ],
+  },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const perms = usePermissions();
 
   return (
     <Sidebar collapsible="icon">
@@ -51,26 +92,32 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Gestão</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const active = currentPath === item.url || currentPath.startsWith(item.url + "/");
-                return (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                      <Link to={item.url} className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((group) => {
+          const visible = group.items.filter((i) => perms.loading || perms.can(i.resource));
+          if (visible.length === 0) return null;
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {visible.map((item) => {
+                    const active = currentPath === item.url || currentPath.startsWith(item.url + "/");
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                          <Link to={item.url} className="flex items-center gap-2">
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
     </Sidebar>
   );
