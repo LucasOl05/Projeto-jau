@@ -96,7 +96,7 @@ function ConfiguracoesPage() {
         description="Módulo pedagógico, integrações e permissões do sistema."
         actions={
           <Button asChild variant="outline">
-            <Link to="/configuracoes/usuarios">
+            <Link to="/usuarios">
               <Users className="mr-2 h-4 w-4" />
               Gestão de usuários
             </Link>
