@@ -54,6 +54,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 
 function DiarioPage() {
   const { data: isAdmin } = useIsAdmin();
+  const { data: notasHabilitadas } = useNotasHabilitadas();
   const qc = useQueryClient();
 
   const [turmaId, setTurmaId] = useState("");
