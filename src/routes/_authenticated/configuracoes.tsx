@@ -91,14 +91,18 @@ function ConfiguracoesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Configurações" description="Módulo pedagógico, integrações e permissões do sistema.">
-        <Button asChild variant="outline">
-          <Link to="/configuracoes/usuarios">
-            <Users className="mr-2 h-4 w-4" />
-            Gestão de usuários
-          </Link>
-        </Button>
-      </PageHeader>
+      <PageHeader
+        title="Configurações"
+        description="Módulo pedagógico, integrações e permissões do sistema."
+        actions={
+          <Button asChild variant="outline">
+            <Link to="/configuracoes/usuarios">
+              <Users className="mr-2 h-4 w-4" />
+              Gestão de usuários
+            </Link>
+          </Button>
+        }
+      />
 
       <Tabs defaultValue="pedagogico">
         <TabsList>
