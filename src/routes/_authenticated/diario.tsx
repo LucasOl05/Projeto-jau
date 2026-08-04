@@ -19,6 +19,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/page-header";
 import { AccessGuard } from "@/components/access-guard";
+import { useNotasHabilitadas } from "@/hooks/use-permissions";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/diario")({
@@ -333,7 +334,7 @@ function DiarioPage() {
           <TabsList>
             <TabsTrigger value="chamada">Chamada</TabsTrigger>
             <TabsTrigger value="plano">Plano de aula</TabsTrigger>
-            <TabsTrigger value="avaliacoes">Avaliações e notas</TabsTrigger>
+            {notasHabilitadas && <TabsTrigger value="avaliacoes">Avaliações e notas</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="chamada" className="space-y-4">
@@ -445,9 +446,11 @@ function DiarioPage() {
             </Card>
           </TabsContent>
 
+          {notasHabilitadas && (
           <TabsContent value="avaliacoes">
             <AvaliacoesTab turmaId={turmaId} disciplinaId={disciplinaId} alunos={alunos} />
           </TabsContent>
+          )}
         </Tabs>
       )}
     </div>
