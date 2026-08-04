@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({
@@ -22,7 +23,11 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: RelatoriosPage,
+  component: () => (
+    <AccessGuard resource="relatorios">
+      <RelatoriosPage />
+    </AccessGuard>
+  ),
 });
 
 type Turma = { id: string; nome: string; codigo_publico: string | null; curso_id: string | null };

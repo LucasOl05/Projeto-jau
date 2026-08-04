@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -30,7 +31,11 @@ export const Route = createFileRoute("/_authenticated/financeiro")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: FinanceiroPage,
+  component: () => (
+    <AccessGuard resource="financeiro">
+      <FinanceiroPage />
+    </AccessGuard>
+  ),
 });
 
 const STATUS = ["Pendente", "Pago", "Atrasado", "Cancelado"] as const;

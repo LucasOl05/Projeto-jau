@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
+import { EstruturaTabs } from "@/components/estrutura-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -26,7 +28,11 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/cursos")({
   head: () => ({ meta: [{ title: "Cursos — JAU ERP" }] }),
-  component: CursosPage,
+  component: () => (
+    <AccessGuard resource="estrutura">
+      <CursosPage />
+    </AccessGuard>
+  ),
 });
 
 type Curso = {
@@ -161,6 +167,7 @@ function CursosPage() {
 
   return (
     <div className="space-y-6">
+      <EstruturaTabs />
       <PageHeader
         title="Cursos"
         description="Cadastro de cursos profissionalizantes."

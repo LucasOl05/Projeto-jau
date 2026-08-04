@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
@@ -22,7 +23,11 @@ export const Route = createFileRoute("/_authenticated/portal")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: PortalPage,
+  component: () => (
+    <AccessGuard resource="portal">
+      <PortalPage />
+    </AccessGuard>
+  ),
 });
 
 type AlunoOption = { id: string; nome: string; codigo_publico: string | null };

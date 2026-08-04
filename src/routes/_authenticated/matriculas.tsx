@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -32,7 +33,11 @@ export const Route = createFileRoute("/_authenticated/matriculas")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: MatriculasPage,
+  component: () => (
+    <AccessGuard resource="matriculas">
+      <MatriculasPage />
+    </AccessGuard>
+  ),
 });
 
 const STATUS = ["Ativa", "Trancada", "Concluída", "Cancelada"] as const;

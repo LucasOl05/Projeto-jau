@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/diario")({
@@ -31,7 +32,11 @@ export const Route = createFileRoute("/_authenticated/diario")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: DiarioPage,
+  component: () => (
+    <AccessGuard resource="diario">
+      <DiarioPage />
+    </AccessGuard>
+  ),
 });
 
 type Turma = { id: string; nome: string; codigo_publico: string | null };
