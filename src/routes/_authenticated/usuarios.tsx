@@ -1,19 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ShieldCheck, ShieldOff, Search } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AccessGuard } from "@/components/access-guard";
+import { RESOURCES, usePermissions, type AppRole, type ResourceKey } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
-  head: () => ({ meta: [{ title: "Usuários — JAU ERP" }] }),
-  component: UsuariosPage,
+  head: () => ({
+    meta: [
+      { title: "Usuários e Permissões — JAU ERP" },
+      { name: "description", content: "Gestão de perfis, promoções, rebaixamentos e solicitações de acesso." },
+      { property: "og:title", content: "Usuários e Permissões — JAU ERP" },
+      { property: "og:description", content: "Controle quem acessa cada módulo do JAU ERP." },
+    ],
+  }),
+  component: () => (
+    <AccessGuard resource="usuarios">
+      <UsuariosPage />
+    </AccessGuard>
+  ),
 });
 
 type ProfileRow = {
@@ -21,6 +39,7 @@ type ProfileRow = {
   full_name: string | null;
   phone: string | null;
   created_at: string;
+  ativo: boolean;
 };
 
 const HIDDEN_EMAIL = "matheusoliveiralopes0166@gmail.com";
@@ -30,15 +49,24 @@ function formatDate(iso: string) {
   return d.toLocaleDateString("pt-BR");
 }
 
+const ROLES: { value: AppRole; label: string }[] = [
+  { value: "admin", label: "Administrador" },
+  { value: "secretaria", label: "Secretaria" },
+  { value: "professor", label: "Professor" },
+  { value: "responsavel", label: "Responsável" },
+];
+
 function UsuariosPage() {
   const [query, setQuery] = useState("");
+  const queryClient = useQueryClient();
+  const perms = usePermissions();
 
   const profilesQuery = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, phone, created_at, email")
+        .select("id, full_name, phone, created_at, email, ativo")
         .not("email", "ilike", HIDDEN_EMAIL)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -53,6 +81,63 @@ function UsuariosPage() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const solicitacoesQuery = useQuery({
+    queryKey: ["solicitacoes_acesso"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("solicitacoes_acesso")
+        .select("id, user_id, recurso, justificativa, status, expira_em, revogado_em, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const definirPapel = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: AppRole | "nenhum" }) => {
+      const { error: delError } = await supabase.from("user_roles").delete().eq("user_id", userId);
+      if (delError) throw delError;
+      if (role !== "nenhum") {
+        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Papel atualizado.");
+      queryClient.invalidateQueries({ queryKey: ["user_roles"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const alternarAtivo = useMutation({
+    mutationFn: async ({ userId, ativo }: { userId: string; ativo: boolean }) => {
+      const { error } = await supabase.from("profiles").update({ ativo }).eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Situação da conta atualizada.");
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const decidir = useMutation({
+    mutationFn: async ({ id, status, revogar }: { id: string; status?: string; revogar?: boolean }) => {
+      const patch: Record<string, unknown> = revogar
+        ? { revogado_em: new Date().toISOString() }
+        : { status, decidido_em: new Date().toISOString(), decidido_por: perms.userId, revogado_em: null };
+      const { error } = await supabase.from("solicitacoes_acesso").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Solicitação atualizada.");
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes_acesso"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const rolesByUser = useMemo(() => {
@@ -74,8 +159,25 @@ function UsuariosPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Usuários" description="Todas as contas cadastradas no sistema e seus papéis." />
+      <PageHeader
+        title="Usuários e Permissões"
+        description="Promova, rebaixe, bloqueie contas e decida as solicitações de acesso."
+      />
 
+      <Tabs defaultValue="contas">
+        <TabsList>
+          <TabsTrigger value="contas">Contas</TabsTrigger>
+          <TabsTrigger value="solicitacoes">
+            Solicitações
+            {(solicitacoesQuery.data ?? []).some((s) => s.status === "Pendente") && (
+              <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] text-primary-foreground">
+                {(solicitacoesQuery.data ?? []).filter((s) => s.status === "Pendente").length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="contas" className="mt-4">
       <Card className="border-border/70">
         <div className="flex items-center gap-3 border-b border-border/70 p-4">
           <div className="relative flex-1 max-w-sm">
@@ -98,6 +200,7 @@ function UsuariosPage() {
               <TableHead>Nome</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Papel</TableHead>
+              <TableHead>Conta ativa</TableHead>
               <TableHead className="text-right">Cadastrado em</TableHead>
             </TableRow>
           </TableHeader>
@@ -108,13 +211,14 @@ function UsuariosPage() {
                   <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell className="text-right"><Skeleton className="ml-auto h-4 w-24" /></TableCell>
                 </TableRow>
               ))}
 
             {!profilesQuery.isLoading && filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
                   Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
@@ -122,21 +226,50 @@ function UsuariosPage() {
 
             {filtered.map((p) => {
               const roles = rolesByUser.get(p.id) ?? [];
-              const isAdmin = roles.includes("admin");
+              const currentRole = (ROLES.find((r) => roles.includes(r.value))?.value ?? "nenhum") as
+                | AppRole
+                | "nenhum";
               return (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.full_name ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.phone ?? "—"}</TableCell>
                   <TableCell>
-                    {isAdmin ? (
-                      <Badge className="gap-1">
-                        <ShieldCheck className="h-3 w-3" /> Administrador
-                      </Badge>
-                    ) : (
+                    {perms.isAdmin ? (
+                      <Select
+                        value={currentRole}
+                        onValueChange={(v) =>
+                          definirPapel.mutate({ userId: p.id, role: v as AppRole | "nenhum" })
+                        }
+                      >
+                        <SelectTrigger className="w-[170px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="nenhum">Sem papel</SelectItem>
+                          {ROLES.map((r) => (
+                            <SelectItem key={r.value} value={r.value}>
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : currentRole === "nenhum" ? (
                       <Badge variant="secondary" className="gap-1 text-muted-foreground">
                         <ShieldOff className="h-3 w-3" /> Sem papel
                       </Badge>
+                    ) : (
+                      <Badge className="gap-1">
+                        <ShieldCheck className="h-3 w-3" />
+                        {ROLES.find((r) => r.value === currentRole)?.label}
+                      </Badge>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={p.ativo}
+                      disabled={!perms.isAdmin}
+                      onCheckedChange={(v) => alternarAtivo.mutate({ userId: p.id, ativo: v })}
+                    />
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">{formatDate(p.created_at)}</TableCell>
                 </TableRow>
@@ -145,6 +278,91 @@ function UsuariosPage() {
           </TableBody>
         </Table>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="solicitacoes" className="mt-4">
+          <Card className="border-border/70">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>Recurso</TableHead>
+                  <TableHead>Justificativa</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(solicitacoesQuery.data ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                      Nenhuma solicitação registrada.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {(solicitacoesQuery.data ?? []).map((s) => {
+                  const nome =
+                    (profilesQuery.data ?? []).find((p) => p.id === s.user_id)?.full_name ?? "Usuário";
+                  const revogado = !!s.revogado_em;
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{nome}</TableCell>
+                      <TableCell>{RESOURCES[s.recurso as ResourceKey] ?? s.recurso}</TableCell>
+                      <TableCell className="max-w-xs truncate text-muted-foreground">{s.justificativa}</TableCell>
+                      <TableCell>
+                        <Badge variant={s.status === "Aprovado" && !revogado ? "default" : "secondary"}>
+                          {revogado ? "Revogado" : s.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {perms.isAdmin && (
+                          <div className="flex justify-end gap-1">
+                            {s.status === "Pendente" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => decidir.mutate({ id: s.id, status: "Aprovado" })}
+                                >
+                                  <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => decidir.mutate({ id: s.id, status: "Recusado" })}
+                                >
+                                  <X className="mr-1 h-3.5 w-3.5" /> Recusar
+                                </Button>
+                              </>
+                            )}
+                            {s.status === "Aprovado" && !revogado && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => decidir.mutate({ id: s.id, revogar: true })}
+                              >
+                                <Ban className="mr-1 h-3.5 w-3.5" /> Revogar
+                              </Button>
+                            )}
+                            {revogado && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => decidir.mutate({ id: s.id, status: "Aprovado" })}
+                              >
+                                <Undo2 className="mr-1 h-3.5 w-3.5" /> Reativar
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
