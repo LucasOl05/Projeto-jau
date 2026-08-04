@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
+import { useNotasHabilitadas } from "@/hooks/use-permissions";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/diario")({
@@ -31,7 +33,11 @@ export const Route = createFileRoute("/_authenticated/diario")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: DiarioPage,
+  component: () => (
+    <AccessGuard resource="diario">
+      <DiarioPage />
+    </AccessGuard>
+  ),
 });
 
 type Turma = { id: string; nome: string; codigo_publico: string | null };
@@ -48,6 +54,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 
 function DiarioPage() {
   const { data: isAdmin } = useIsAdmin();
+  const { data: notasHabilitadas } = useNotasHabilitadas();
   const qc = useQueryClient();
 
   const [turmaId, setTurmaId] = useState("");
@@ -328,7 +335,7 @@ function DiarioPage() {
           <TabsList>
             <TabsTrigger value="chamada">Chamada</TabsTrigger>
             <TabsTrigger value="plano">Plano de aula</TabsTrigger>
-            <TabsTrigger value="avaliacoes">Avaliações e notas</TabsTrigger>
+            {notasHabilitadas && <TabsTrigger value="avaliacoes">Avaliações e notas</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="chamada" className="space-y-4">
@@ -440,9 +447,11 @@ function DiarioPage() {
             </Card>
           </TabsContent>
 
+          {notasHabilitadas && (
           <TabsContent value="avaliacoes">
             <AvaliacoesTab turmaId={turmaId} disciplinaId={disciplinaId} alunos={alunos} />
           </TabsContent>
+          )}
         </Tabs>
       )}
     </div>

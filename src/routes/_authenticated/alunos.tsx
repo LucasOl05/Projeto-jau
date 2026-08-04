@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -56,7 +57,11 @@ import { brDateToISO, isoDateToBR, isValidCPF, maskCPF, maskDate, onlyDigits } f
 
 export const Route = createFileRoute("/_authenticated/alunos")({
   head: () => ({ meta: [{ title: "Alunos — JAU ERP" }] }),
-  component: AlunosPage,
+  component: () => (
+    <AccessGuard resource="alunos">
+      <AlunosPage />
+    </AccessGuard>
+  ),
 });
 
 const STATUS_OPTIONS = ["Pendente", "Ativo", "Trancado", "Concluído", "Inativo"] as const;

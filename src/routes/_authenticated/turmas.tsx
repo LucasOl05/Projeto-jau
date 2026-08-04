@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
+import { EstruturaTabs } from "@/components/estrutura-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -27,7 +29,11 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/turmas")({
   head: () => ({ meta: [{ title: "Turmas — JAU ERP" }] }),
-  component: TurmasPage,
+  component: () => (
+    <AccessGuard resource="estrutura">
+      <TurmasPage />
+    </AccessGuard>
+  ),
 });
 
 type Turma = {
@@ -219,6 +225,7 @@ function TurmasPage() {
 
   return (
     <div className="space-y-6">
+      <EstruturaTabs />
       <PageHeader
         title="Turmas"
         description="Turmas vinculadas aos cursos cadastrados."

@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
+import { EstruturaTabs } from "@/components/estrutura-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -25,7 +27,11 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/professores")({
   head: () => ({ meta: [{ title: "Professores — JAU ERP" }] }),
-  component: ProfessoresPage,
+  component: () => (
+    <AccessGuard resource="estrutura">
+      <ProfessoresPage />
+    </AccessGuard>
+  ),
 });
 
 type Professor = {
@@ -143,6 +149,7 @@ function ProfessoresPage() {
 
   return (
     <div className="space-y-6">
+      <EstruturaTabs />
       <PageHeader
         title="Professores"
         description="Cadastro do corpo docente da escola."

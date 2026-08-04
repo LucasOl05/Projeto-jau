@@ -243,6 +243,56 @@ export type Database = {
           },
         ]
       }
+      configuracoes: {
+        Row: {
+          asaas_ambiente: string
+          asaas_api_key: string | null
+          created_at: string
+          id: string
+          notas_habilitadas: boolean
+          portal_url: string | null
+          school_id: string
+          updated_at: string
+          updated_by: string | null
+          waseller_endpoint: string | null
+          waseller_token: string | null
+        }
+        Insert: {
+          asaas_ambiente?: string
+          asaas_api_key?: string | null
+          created_at?: string
+          id?: string
+          notas_habilitadas?: boolean
+          portal_url?: string | null
+          school_id: string
+          updated_at?: string
+          updated_by?: string | null
+          waseller_endpoint?: string | null
+          waseller_token?: string | null
+        }
+        Update: {
+          asaas_ambiente?: string
+          asaas_api_key?: string | null
+          created_at?: string
+          id?: string
+          notas_habilitadas?: boolean
+          portal_url?: string | null
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          waseller_endpoint?: string | null
+          waseller_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cursos: {
         Row: {
           ativo: boolean
@@ -722,6 +772,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -731,6 +782,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ativo?: boolean
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -740,6 +792,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -783,6 +836,59 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitacoes_acesso: {
+        Row: {
+          created_at: string
+          decidido_em: string | null
+          decidido_por: string | null
+          expira_em: string | null
+          id: string
+          justificativa: string
+          recurso: string
+          revogado_em: string | null
+          school_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          expira_em?: string | null
+          id?: string
+          justificativa: string
+          recurso: string
+          revogado_em?: string | null
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          expira_em?: string | null
+          id?: string
+          justificativa?: string
+          recurso?: string
+          revogado_em?: string | null
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_acesso_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       turmas: {
         Row: {
           ativo: boolean
@@ -797,6 +903,7 @@ export type Database = {
           id: string
           nome: string
           school_id: string
+          total_aulas_previstas: number | null
           updated_at: string
           vagas_totais: number | null
         }
@@ -813,6 +920,7 @@ export type Database = {
           id?: string
           nome: string
           school_id?: string
+          total_aulas_previstas?: number | null
           updated_at?: string
           vagas_totais?: number | null
         }
@@ -829,6 +937,7 @@ export type Database = {
           id?: string
           nome?: string
           school_id?: string
+          total_aulas_previstas?: number | null
           updated_at?: string
           vagas_totais?: number | null
         }

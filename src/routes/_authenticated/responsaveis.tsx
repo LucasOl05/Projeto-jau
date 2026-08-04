@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -25,7 +26,11 @@ import { isValidCPF, maskCPF, maskPhone, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/responsaveis")({
   head: () => ({ meta: [{ title: "Responsáveis — JAU ERP" }] }),
-  component: ResponsaveisPage,
+  component: () => (
+    <AccessGuard resource="responsaveis">
+      <ResponsaveisPage />
+    </AccessGuard>
+  ),
 });
 
 type Responsavel = {

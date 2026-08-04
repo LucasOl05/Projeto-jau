@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
+import { AccessGuard } from "@/components/access-guard";
+import { EstruturaTabs } from "@/components/estrutura-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -21,7 +23,11 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/disciplinas")({
   head: () => ({ meta: [{ title: "Disciplinas — JAU ERP" }] }),
-  component: DisciplinasPage,
+  component: () => (
+    <AccessGuard resource="estrutura">
+      <DisciplinasPage />
+    </AccessGuard>
+  ),
 });
 
 type Disciplina = {
@@ -168,6 +174,7 @@ function DisciplinasPage() {
 
   return (
     <div className="space-y-6">
+      <EstruturaTabs />
       <PageHeader
         title="Disciplinas"
         description="Disciplinas por turma e professor titular."

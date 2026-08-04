@@ -20,10 +20,12 @@ import { Route as AuthenticatedProfessoresRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedMatriculasRouteImport } from './routes/_authenticated/matriculas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
+import { Route as AuthenticatedEstruturaRouteImport } from './routes/_authenticated/estrutura'
 import { Route as AuthenticatedDisciplinasRouteImport } from './routes/_authenticated/disciplinas'
 import { Route as AuthenticatedDiarioRouteImport } from './routes/_authenticated/diario'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCursosRouteImport } from './routes/_authenticated/cursos'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedAlunosRouteImport } from './routes/_authenticated/alunos'
 
 const AuthRoute = AuthRouteImport.update({
@@ -82,6 +84,11 @@ const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEstruturaRoute = AuthenticatedEstruturaRouteImport.update({
+  id: '/estrutura',
+  path: '/estrutura',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDisciplinasRoute =
   AuthenticatedDisciplinasRouteImport.update({
     id: '/disciplinas',
@@ -103,6 +110,12 @@ const AuthenticatedCursosRoute = AuthenticatedCursosRouteImport.update({
   path: '/cursos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAlunosRoute = AuthenticatedAlunosRouteImport.update({
   id: '/alunos',
   path: '/alunos',
@@ -113,10 +126,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/alunos': typeof AuthenticatedAlunosRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/estrutura': typeof AuthenticatedEstruturaRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
   '/portal': typeof AuthenticatedPortalRoute
@@ -130,10 +145,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/alunos': typeof AuthenticatedAlunosRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cursos': typeof AuthenticatedCursosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/estrutura': typeof AuthenticatedEstruturaRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
   '/portal': typeof AuthenticatedPortalRoute
@@ -149,10 +166,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/alunos': typeof AuthenticatedAlunosRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/cursos': typeof AuthenticatedCursosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/diario': typeof AuthenticatedDiarioRoute
   '/_authenticated/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/_authenticated/estrutura': typeof AuthenticatedEstruturaRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/matriculas': typeof AuthenticatedMatriculasRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
@@ -168,10 +187,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/alunos'
+    | '/configuracoes'
     | '/cursos'
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/estrutura'
     | '/financeiro'
     | '/matriculas'
     | '/portal'
@@ -185,10 +206,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/alunos'
+    | '/configuracoes'
     | '/cursos'
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/estrutura'
     | '/financeiro'
     | '/matriculas'
     | '/portal'
@@ -203,10 +226,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/alunos'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/cursos'
     | '/_authenticated/dashboard'
     | '/_authenticated/diario'
     | '/_authenticated/disciplinas'
+    | '/_authenticated/estrutura'
     | '/_authenticated/financeiro'
     | '/_authenticated/matriculas'
     | '/_authenticated/portal'
@@ -302,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/estrutura': {
+      id: '/_authenticated/estrutura'
+      path: '/estrutura'
+      fullPath: '/estrutura'
+      preLoaderRoute: typeof AuthenticatedEstruturaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/disciplinas': {
       id: '/_authenticated/disciplinas'
       path: '/disciplinas'
@@ -330,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCursosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/alunos': {
       id: '/_authenticated/alunos'
       path: '/alunos'
@@ -342,10 +381,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlunosRoute: typeof AuthenticatedAlunosRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCursosRoute: typeof AuthenticatedCursosRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiarioRoute: typeof AuthenticatedDiarioRoute
   AuthenticatedDisciplinasRoute: typeof AuthenticatedDisciplinasRoute
+  AuthenticatedEstruturaRoute: typeof AuthenticatedEstruturaRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedMatriculasRoute: typeof AuthenticatedMatriculasRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
@@ -358,10 +399,12 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlunosRoute: AuthenticatedAlunosRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCursosRoute: AuthenticatedCursosRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiarioRoute: AuthenticatedDiarioRoute,
   AuthenticatedDisciplinasRoute: AuthenticatedDisciplinasRoute,
+  AuthenticatedEstruturaRoute: AuthenticatedEstruturaRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedMatriculasRoute: AuthenticatedMatriculasRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
@@ -383,13 +426,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
