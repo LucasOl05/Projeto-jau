@@ -521,8 +521,23 @@ function AlunosPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
+      <Dialog open={!!docsAluno} onOpenChange={(v) => !v && setDocsAluno(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Documentos — {docsAluno?.nome}</DialogTitle>
+            <DialogDescription>
+              Arquivos enviados pela escola e documentos recebidos do responsável pelo Portal.
+            </DialogDescription>
+          </DialogHeader>
+          {docsAluno && (
+            <div className="max-h-[65vh] overflow-y-auto pr-1">
+              <DocumentosPanel alunoId={docsAluno.id} mode="escola" canManage={!!isAdmin} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
+      <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
