@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2, Users, CheckCircle2, Clock, X } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Users, CheckCircle2, Clock, X, FolderOpen, FilterX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -53,6 +53,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { DocumentosPanel } from "@/components/documentos-panel";
 import { brDateToISO, isoDateToBR, isValidCPF, maskCPF, maskDate, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/alunos")({
@@ -139,6 +140,9 @@ function AlunosPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [confirmDelete, setConfirmDelete] = useState<Aluno | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [nascFilter, setNascFilter] = useState("");
+  const [docsAluno, setDocsAluno] = useState<Aluno | null>(null);
   const qc = useQueryClient();
   const { data: isAdmin } = useIsAdmin();
 
@@ -249,15 +253,24 @@ function AlunosPage() {
 
   const filtered = useMemo(() => {
     const rows = alunosQuery.data ?? [];
-    if (!query.trim()) return rows;
-    const q = query.toLowerCase();
-    return rows.filter(
-      (r) =>
+    const q = query.trim().toLowerCase();
+    const qDigits = onlyDigits(query);
+    const nascIso = nascFilter.length === 10 ? brDateToISO(nascFilter) : null;
+    return rows.filter((r) => {
+      if (statusFilter !== "todos" && r.status !== statusFilter) return false;
+      if (nascIso && r.data_nascimento !== nascIso) return false;
+      if (!q) return true;
+      return (
         r.nome.toLowerCase().includes(q) ||
         String(r.matricula).includes(q) ||
-        (r.codigo_publico ?? "").toLowerCase().includes(q),
-    );
-  }, [alunosQuery.data, query]);
+        (r.codigo_publico ?? "").toLowerCase().includes(q) ||
+        (!!qDigits && (r.cpf ?? "").includes(qDigits)) ||
+        (r.rg ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [alunosQuery.data, query, statusFilter, nascFilter]);
+
+  const filtrosAtivos = query.trim() !== "" || statusFilter !== "todos" || nascFilter !== "";
 
   const summary = useMemo(() => {
     const rows = alunosQuery.data ?? [];
@@ -333,10 +346,39 @@ function AlunosPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por nome ou matrícula..."
+              placeholder="Buscar por nome, matrícula, código, CPF ou RG..."
               className="pl-9"
             />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os status</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            value={nascFilter}
+            inputMode="numeric"
+            onChange={(e) => setNascFilter(maskDate(e.target.value))}
+            placeholder="Nascimento dd/mm/aaaa"
+            className="w-48"
+          />
+          {filtrosAtivos && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQuery("");
+                setStatusFilter("todos");
+                setNascFilter("");
+              }}
+            >
+              <FilterX className="mr-2 h-4 w-4" /> Limpar
+            </Button>
+          )}
           <div className="ml-auto text-xs text-muted-foreground">
             {alunosQuery.data ? `${filtered.length} aluno(s)` : ""}
           </div>
@@ -350,21 +392,21 @@ function AlunosPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>CPF</TableHead>
                 <TableHead>Status</TableHead>
-                {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {alunosQuery.isLoading &&
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={isAdmin ? 5 : 4}>
+                    <TableCell colSpan={5}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   </TableRow>
                 ))}
               {!alunosQuery.isLoading && filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 5 : 4} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
                     Nenhum aluno encontrado.
                   </TableCell>
                 </TableRow>
@@ -377,18 +419,23 @@ function AlunosPage() {
                   <TableCell className="font-medium">{a.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{a.cpf ? maskCPF(a.cpf) : "—"}</TableCell>
                   <TableCell><StatusBadge status={a.status} /></TableCell>
-                  {isAdmin && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(a)}>
-                          <Pencil className="h-4 w-4" />
+                        <Button size="sm" variant="ghost" title="Documentos" onClick={() => setDocsAluno(a)}>
+                          <FolderOpen className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(a)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(a)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" title="Excluir" onClick={() => setConfirmDelete(a)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
-                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -471,6 +518,22 @@ function AlunosPage() {
               <Button type="submit" disabled={upsert.isPending}>Salvar</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!docsAluno} onOpenChange={(v) => !v && setDocsAluno(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Documentos — {docsAluno?.nome}</DialogTitle>
+            <DialogDescription>
+              Arquivos enviados pela escola e documentos recebidos do responsável pelo Portal.
+            </DialogDescription>
+          </DialogHeader>
+          {docsAluno && (
+            <div className="max-h-[65vh] overflow-y-auto pr-1">
+              <DocumentosPanel alunoId={docsAluno.id} mode="escola" canManage={!!isAdmin} />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

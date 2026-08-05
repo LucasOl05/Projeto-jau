@@ -11,6 +11,7 @@ import { AccessGuard } from "@/components/access-guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { DocumentosPanel } from "@/components/documentos-panel";
 
 export const Route = createFileRoute("/_authenticated/portal")({
   head: () => ({
@@ -294,6 +295,7 @@ function PortalPage() {
           {alunoId && (
             <PortalConteudo
               alunoNome={alunoAtual?.nome ?? ""}
+              alunoId={alunoId}
               boletim={boletim}
               loadingBoletim={loadingBoletim}
               frequencia={frequencia}
@@ -331,6 +333,7 @@ function PortalPage() {
               loadingFrequencia={loadingFrequencia}
               financeiro={financeiro}
               loadingFinanceiro={loadingFinanceiro}
+              alunoId={alunoId}
             />
           )}
         </div>
@@ -349,6 +352,7 @@ function PortalPage() {
 
 function PortalConteudo({
   alunoNome,
+  alunoId,
   boletim,
   loadingBoletim,
   frequencia,
@@ -357,6 +361,7 @@ function PortalConteudo({
   loadingFinanceiro,
 }: {
   alunoNome: string;
+  alunoId: string | null;
   boletim: ReturnType<typeof useBoletim>["data"];
   loadingBoletim: boolean;
   frequencia: ReturnType<typeof useFrequencia>["data"];
@@ -368,10 +373,11 @@ function PortalConteudo({
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-foreground">{alunoNome}</h2>
       <Tabs defaultValue="boletim">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="boletim">Boletim</TabsTrigger>
           <TabsTrigger value="frequencia">Frequência</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="boletim" className="mt-4 space-y-4">
@@ -471,6 +477,16 @@ function PortalConteudo({
                 );
               })}
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="documentos" className="mt-4 space-y-4">
+          {!alunoId ? (
+            <Card className="border-border/70 p-6 text-center text-sm text-muted-foreground">
+              Selecione um aluno para ver os documentos.
+            </Card>
+          ) : (
+            <DocumentosPanel alunoId={alunoId} mode="portal" />
           )}
         </TabsContent>
       </Tabs>
