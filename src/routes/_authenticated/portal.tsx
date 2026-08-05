@@ -295,6 +295,7 @@ function PortalPage() {
           {alunoId && (
             <PortalConteudo
               alunoNome={alunoAtual?.nome ?? ""}
+              alunoId={alunoId}
               boletim={boletim}
               loadingBoletim={loadingBoletim}
               frequencia={frequencia}
