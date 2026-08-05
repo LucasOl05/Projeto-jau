@@ -332,6 +332,7 @@ function PortalPage() {
               loadingFrequencia={loadingFrequencia}
               financeiro={financeiro}
               loadingFinanceiro={loadingFinanceiro}
+              alunoId={alunoId}
             />
           )}
         </div>
@@ -350,6 +351,7 @@ function PortalPage() {
 
 function PortalConteudo({
   alunoNome,
+  alunoId,
   boletim,
   loadingBoletim,
   frequencia,
@@ -358,6 +360,7 @@ function PortalConteudo({
   loadingFinanceiro,
 }: {
   alunoNome: string;
+  alunoId: string | null;
   boletim: ReturnType<typeof useBoletim>["data"];
   loadingBoletim: boolean;
   frequencia: ReturnType<typeof useFrequencia>["data"];
