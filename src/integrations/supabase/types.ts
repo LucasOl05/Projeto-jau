@@ -539,6 +539,78 @@ export type Database = {
           },
         ]
       }
+      documentos: {
+        Row: {
+          aluno_id: string
+          categoria: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          mime_type: string | null
+          observacoes: string | null
+          origem: string
+          school_id: string | null
+          status: string
+          storage_path: string
+          tamanho: number | null
+          titulo: string
+          updated_at: string
+          uploaded_by: string | null
+          visivel_portal: boolean
+        }
+        Insert: {
+          aluno_id: string
+          categoria?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime_type?: string | null
+          observacoes?: string | null
+          origem?: string
+          school_id?: string | null
+          status?: string
+          storage_path: string
+          tamanho?: number | null
+          titulo: string
+          updated_at?: string
+          uploaded_by?: string | null
+          visivel_portal?: boolean
+        }
+        Update: {
+          aluno_id?: string
+          categoria?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime_type?: string | null
+          observacoes?: string | null
+          origem?: string
+          school_id?: string | null
+          status?: string
+          storage_path?: string
+          tamanho?: number | null
+          titulo?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          visivel_portal?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escolas: {
         Row: {
           ativa: boolean
