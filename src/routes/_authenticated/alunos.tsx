@@ -522,6 +522,7 @@ function AlunosPage() {
       </Dialog>
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
+
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
