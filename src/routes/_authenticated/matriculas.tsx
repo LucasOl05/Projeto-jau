@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-import { isValidCPF, maskCPF, maskPhone, onlyDigits } from "@/lib/masks";
+import { brDateToISO, isValidCPF, maskCPF, maskDate, maskPhone, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/matriculas")({
   head: () => ({
@@ -88,9 +88,23 @@ function MatriculasPage() {
   const [form, setForm] = useState<FormState>(emptyForm());
   const [novoAluno, setNovoAluno] = useState(false);
   const [novoResp, setNovoResp] = useState(false);
-  const [alunoNovo, setAlunoNovo] = useState({ nome: "", cpf: "", codigo_publico: "" });
+  const [alunoNovo, setAlunoNovo] = useState({
+    nome: "",
+    cpf: "",
+    codigo_publico: "",
+    data_nascimento: "",
+    telefone: "",
+  });
   const [respSel, setRespSel] = useState("");
-  const [respNovo, setRespNovo] = useState({ nome: "", telefone: "", parentesco: "Mãe" as string });
+  const [respNovo, setRespNovo] = useState({ nome: "", cpf: "", telefone: "", parentesco: "Mãe" as string });
+  const [plano, setPlano] = useState({
+    ativo: false,
+    valor: "",
+    parcelas: "12",
+    dia_vencimento: "10",
+    primeira: todayISO(),
+    forma: "PIX" as "PIX" | "Boleto",
+  });
 
   const listQuery = useQuery({
     queryKey: ["matriculas"],
@@ -137,20 +151,28 @@ function MatriculasPage() {
   const upsert = useMutation({
     mutationFn: async (f: FormState) => {
       let alunoId = f.aluno_id;
+      let responsavelFinal = respSel || "";
 
       if (novoAluno) {
         const cpfDigits = onlyDigits(alunoNovo.cpf);
         if (cpfDigits && !isValidCPF(cpfDigits)) throw new Error("CPF do aluno inválido.");
         if (!alunoNovo.nome.trim()) throw new Error("Informe o nome do novo aluno.");
+        const nascISO = brDateToISO(alunoNovo.data_nascimento);
+        if (!nascISO) throw new Error("Informe a data de nascimento do aluno (dd/mm/aaaa).");
+        if (onlyDigits(alunoNovo.telefone).length < 10) throw new Error("Informe o telefone do aluno.");
 
         // 1) Responsável (novo ou existente)
         let responsavelId = respSel || "";
         if (novoResp) {
           if (!respNovo.nome.trim()) throw new Error("Informe o nome do responsável.");
+          const respCpf = onlyDigits(respNovo.cpf);
+          if (!isValidCPF(respCpf)) throw new Error("CPF do responsável inválido.");
+          if (onlyDigits(respNovo.telefone).length < 10) throw new Error("Informe o telefone do responsável.");
           const { data: r, error: rErr } = await supabase
             .from("responsaveis")
             .insert({
               nome: respNovo.nome.trim(),
+              cpf: respCpf,
               telefone: onlyDigits(respNovo.telefone) || null,
             })
             .select("id")
@@ -158,6 +180,7 @@ function MatriculasPage() {
           if (rErr) throw rErr;
           responsavelId = r.id;
         }
+        responsavelFinal = responsavelId;
 
         // 2) Aluno
         const { data: a, error: aErr } = await supabase
@@ -165,6 +188,8 @@ function MatriculasPage() {
           .insert({
             nome: alunoNovo.nome.trim(),
             cpf: cpfDigits || null,
+            data_nascimento: nascISO,
+            telefone: onlyDigits(alunoNovo.telefone),
             status: "Ativo",
             ...(alunoNovo.codigo_publico.trim() ? { codigo_publico: alunoNovo.codigo_publico.trim() } : {}),
           })
@@ -196,8 +221,38 @@ function MatriculasPage() {
         const { error } = await supabase.from("matriculas").update(payload).eq("id", f.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("matriculas").insert(payload);
+        const { data: mat, error } = await supabase.from("matriculas").insert(payload).select("id").single();
         if (error) throw error;
+
+        if (plano.ativo) {
+          const valor = Number(plano.valor.replace(",", "."));
+          const parcelas = Number(plano.parcelas);
+          const dia = Number(plano.dia_vencimento);
+          if (!valor || valor <= 0) throw new Error("Informe o valor da mensalidade.");
+          if (!parcelas || parcelas < 1 || parcelas > 60) throw new Error("Quantidade de parcelas inválida.");
+          if (!dia || dia < 1 || dia > 28) throw new Error("Dia de vencimento deve estar entre 1 e 28.");
+
+          const base = new Date(`${plano.primeira}T00:00:00`);
+          const rows = Array.from({ length: parcelas }).map((_, i) => {
+            const d = new Date(base.getFullYear(), base.getMonth() + i, dia);
+            const venc = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+              d.getDate(),
+            ).padStart(2, "0")}`;
+            return {
+              aluno_id: alunoId,
+              matricula_id: mat.id,
+              responsavel_id: responsavelFinal || null,
+              descricao: `Mensalidade ${i + 1}/${parcelas}`,
+              competencia: venc.slice(0, 7),
+              valor,
+              vencimento: venc,
+              status: "Pendente",
+              forma_pagamento: plano.forma,
+            };
+          });
+          const { error: mErr } = await supabase.from("mensalidades").insert(rows);
+          if (mErr) throw mErr;
+        }
       }
     },
     onSuccess: () => {
@@ -206,6 +261,7 @@ function MatriculasPage() {
       qc.invalidateQueries({ queryKey: ["alunos-opts"] });
       qc.invalidateQueries({ queryKey: ["alunos"] });
       qc.invalidateQueries({ queryKey: ["responsaveis"] });
+      qc.invalidateQueries({ queryKey: ["mensalidades"] });
       setOpen(false);
       setForm(emptyForm());
       resetQuick();
@@ -229,9 +285,10 @@ function MatriculasPage() {
   function resetQuick() {
     setNovoAluno(false);
     setNovoResp(false);
-    setAlunoNovo({ nome: "", cpf: "", codigo_publico: "" });
+    setAlunoNovo({ nome: "", cpf: "", codigo_publico: "", data_nascimento: "", telefone: "" });
     setRespSel("");
-    setRespNovo({ nome: "", telefone: "", parentesco: "Mãe" });
+    setRespNovo({ nome: "", cpf: "", telefone: "", parentesco: "Mãe" });
+    setPlano({ ativo: false, valor: "", parcelas: "12", dia_vencimento: "10", primeira: todayISO(), forma: "PIX" });
   }
 
   const remove = useMutation({
