@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2, Users, CheckCircle2, Clock, X, FolderOpen, FilterX } from "lucide-react";
+import { Search, Plus, Pencil, Users, CheckCircle2, Clock, X, FolderOpen, FilterX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,16 +23,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -54,7 +44,7 @@ import {
 } from "@/components/ui/command";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { DocumentosPanel } from "@/components/documentos-panel";
-import { brDateToISO, isoDateToBR, isValidCPF, maskCPF, maskDate, onlyDigits } from "@/lib/masks";
+import { brDateToISO, isoDateToBR, isValidCPF, maskCPF, maskDate, maskPhone, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/alunos")({
   head: () => ({ meta: [{ title: "Alunos — JAU ERP" }] }),
@@ -75,14 +65,21 @@ type Aluno = {
   nome: string;
   cpf: string | null;
   rg: string | null;
+  telefone: string | null;
   data_nascimento: string | null;
   status: Status;
   created_at: string;
 };
 
-type Responsavel = { id: string; nome: string; cpf: string | null };
+type Responsavel = { id: string; nome: string; cpf: string | null; telefone?: string | null };
 
-type LinkedResp = { responsavel_id: string; parentesco: string | null; nome: string };
+type LinkedResp = {
+  responsavel_id: string;
+  parentesco: string | null;
+  nome: string;
+  cpf: string;
+  telefone: string;
+};
 
 type FormState = {
   id?: string;
@@ -90,6 +87,7 @@ type FormState = {
   nome: string;
   cpf: string;
   rg: string;
+  telefone: string;
   data_nascimento: string;
   status: Status;
   vinculos: LinkedResp[];
@@ -100,6 +98,7 @@ const emptyForm: FormState = {
   nome: "",
   cpf: "",
   rg: "",
+  telefone: "",
   data_nascimento: "",
   status: "Pendente",
   vinculos: [],
@@ -139,7 +138,6 @@ function AlunosPage() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [confirmDelete, setConfirmDelete] = useState<Aluno | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [nascFilter, setNascFilter] = useState("");
   const [docsAluno, setDocsAluno] = useState<Aluno | null>(null);
@@ -151,7 +149,7 @@ function AlunosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alunos")
-        .select("id, matricula, codigo_publico, nome, cpf, rg, data_nascimento, status, created_at")
+        .select("id, matricula, codigo_publico, nome, cpf, rg, telefone, data_nascimento, status, created_at")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -164,7 +162,7 @@ function AlunosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("responsaveis")
-        .select("id, nome, cpf")
+        .select("id, nome, cpf, telefone")
         .is("deleted_at", null)
         .order("nome");
       if (error) throw error;
@@ -192,6 +190,7 @@ function AlunosPage() {
         nome: f.nome.trim(),
         cpf: cpfDigits || null,
         rg: f.rg.trim() || null,
+        telefone: onlyDigits(f.telefone) || null,
         data_nascimento: isoNasc,
         status: f.status,
         ...(f.codigo_publico.trim() ? { codigo_publico: f.codigo_publico.trim() } : {}),
@@ -215,6 +214,19 @@ function AlunosPage() {
       if (delErr) throw delErr;
 
       if (f.vinculos.length > 0) {
+        for (const v of f.vinculos) {
+          const rCpf = onlyDigits(v.cpf);
+          if (rCpf && !isValidCPF(rCpf)) throw new Error(`CPF inválido do responsável ${v.nome}.`);
+          const { error: rErr } = await supabase
+            .from("responsaveis")
+            .update({
+              nome: v.nome.trim(),
+              cpf: rCpf || null,
+              telefone: onlyDigits(v.telefone) || null,
+            })
+            .eq("id", v.responsavel_id);
+          if (rErr) throw rErr;
+        }
         const { error: upErr } = await supabase.from("aluno_responsavel").upsert(
           f.vinculos.map((v) => ({
             aluno_id: alunoId!,
@@ -229,24 +241,10 @@ function AlunosPage() {
     onSuccess: () => {
       toast.success("Aluno salvo");
       qc.invalidateQueries({ queryKey: ["alunos"] });
+      qc.invalidateQueries({ queryKey: ["responsaveis-lookup"] });
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
       setOpen(false);
       setForm(emptyForm);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const deleteAluno = useMutation({
-    mutationFn: async (a: Aluno) => {
-      const { error } = await supabase
-        .from("alunos")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", a.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Aluno excluído");
-      qc.invalidateQueries({ queryKey: ["alunos"] });
-      setConfirmDelete(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -285,14 +283,17 @@ function AlunosPage() {
     // Carrega vínculos atuais
     const { data: vinc } = await supabase
       .from("aluno_responsavel")
-      .select("responsavel_id, parentesco, responsaveis(nome)")
+      .select("responsavel_id, parentesco, responsaveis(nome, cpf, telefone)")
       .eq("aluno_id", a.id);
     const vinculos: LinkedResp[] = (vinc ?? []).map((v) => {
-      const rel = (v as { responsaveis: { nome: string } | null }).responsaveis;
+      const rel = (v as { responsaveis: { nome: string; cpf: string | null; telefone: string | null } | null })
+        .responsaveis;
       return {
         responsavel_id: v.responsavel_id,
         parentesco: v.parentesco,
         nome: rel?.nome ?? "",
+        cpf: rel?.cpf ? maskCPF(rel.cpf) : "",
+        telefone: rel?.telefone ? maskPhone(rel.telefone) : "",
       };
     });
     setForm({
@@ -301,6 +302,7 @@ function AlunosPage() {
       nome: a.nome,
       cpf: a.cpf ? maskCPF(a.cpf) : "",
       rg: a.rg ?? "",
+      telefone: a.telefone ? maskPhone(a.telefone) : "",
       data_nascimento: isoDateToBR(a.data_nascimento),
       status: a.status,
       vinculos,
