@@ -515,6 +515,24 @@ function UsuariosPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!confirmAluno} onOpenChange={(v) => !v && setConfirmAluno(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir definitivamente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir o aluno <strong>{confirmAluno?.nome}</strong>? Esta ação é
+              irreversível e cancela o acesso dele ao Portal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmAluno && excluirAluno.mutate(confirmAluno)}>
+              Excluir definitivamente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
