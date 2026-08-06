@@ -366,6 +366,12 @@ function UsuariosPage() {
         </TabsContent>
 
         <TabsContent value="solicitacoes" className="mt-4">
+          <></>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
           <Card className="border-border/70">
             <Table>
               <TableHeader>
