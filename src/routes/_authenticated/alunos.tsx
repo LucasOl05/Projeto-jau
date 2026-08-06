@@ -490,6 +490,16 @@ function AlunosPage() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="tel-aluno">Telefone do aluno</Label>
+              <Input
+                id="tel-aluno"
+                inputMode="tel"
+                value={form.telefone}
+                onChange={(e) => setForm({ ...form, telefone: maskPhone(e.target.value) })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Status })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -566,7 +576,16 @@ function VinculoPicker({
   const available = responsaveis.filter((r) => !linkedIds.has(r.id));
 
   function addVinculo(r: Responsavel) {
-    onChange([...value, { responsavel_id: r.id, nome: r.nome, parentesco: "Mãe" }]);
+    onChange([
+      ...value,
+      {
+        responsavel_id: r.id,
+        nome: r.nome,
+        cpf: r.cpf ? maskCPF(r.cpf) : "",
+        telefone: r.telefone ? maskPhone(r.telefone) : "",
+        parentesco: "Mãe",
+      },
+    ]);
     setOpen(false);
   }
   function removeVinculo(id: string) {
@@ -575,6 +594,9 @@ function VinculoPicker({
   function updateParentesco(id: string, parentesco: string) {
     onChange(value.map((v) => (v.responsavel_id === id ? { ...v, parentesco } : v)));
   }
+  function updateField(id: string, patch: Partial<LinkedResp>) {
+    onChange(value.map((v) => (v.responsavel_id === id ? { ...v, ...patch } : v)));
+  }
 
   return (
     <div className="space-y-2 rounded-lg border border-border/70 p-3">
@@ -582,19 +604,48 @@ function VinculoPicker({
         <p className="text-xs text-muted-foreground">Nenhum responsável vinculado.</p>
       )}
       {value.map((v) => (
-        <div key={v.responsavel_id} className="flex flex-wrap items-center gap-2">
-          <div className="min-w-0 flex-1 truncate text-sm">{v.nome}</div>
-          <Select value={v.parentesco ?? ""} onValueChange={(p) => updateParentesco(v.responsavel_id, p)}>
-            <SelectTrigger className="h-8 w-32"><SelectValue placeholder="Parentesco" /></SelectTrigger>
-            <SelectContent>
-              {parentescos.map((p) => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button type="button" size="icon" variant="ghost" onClick={() => removeVinculo(v.responsavel_id)}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div key={v.responsavel_id} className="space-y-2 rounded-md border border-border/60 p-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <Input
+              className="h-8"
+              value={v.nome}
+              placeholder="Nome do responsável"
+              onChange={(e) => updateField(v.responsavel_id, { nome: e.target.value })}
+            />
+            <Input
+              className="h-8"
+              inputMode="numeric"
+              value={v.cpf}
+              placeholder="CPF"
+              onChange={(e) => updateField(v.responsavel_id, { cpf: maskCPF(e.target.value) })}
+            />
+            <Input
+              className="h-8"
+              inputMode="tel"
+              value={v.telefone}
+              placeholder="Telefone"
+              onChange={(e) => updateField(v.responsavel_id, { telefone: maskPhone(e.target.value) })}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={v.parentesco ?? ""} onValueChange={(p) => updateParentesco(v.responsavel_id, p)}>
+              <SelectTrigger className="h-8 w-40"><SelectValue placeholder="Parentesco" /></SelectTrigger>
+              <SelectContent>
+                {parentescos.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="ml-auto"
+              onClick={() => removeVinculo(v.responsavel_id)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       ))}
 
