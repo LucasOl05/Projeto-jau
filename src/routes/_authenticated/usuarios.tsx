@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2 } from "lucide-react";
+import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,9 +13,20 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccessGuard } from "@/components/access-guard";
+import { maskCPF } from "@/lib/masks";
 import { RESOURCES, usePermissions, type AppRole, type ResourceKey } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
@@ -42,6 +53,16 @@ type ProfileRow = {
   ativo: boolean;
 };
 
+type AlunoRow = {
+  id: string;
+  nome: string;
+  codigo_publico: string | null;
+  cpf: string | null;
+  status: string;
+  responsaveis: string;
+  cpf_responsavel: string | null;
+};
+
 const HIDDEN_EMAIL = "matheusoliveiralopes0166@gmail.com";
 
 function formatDate(iso: string) {
@@ -58,6 +79,8 @@ const ROLES: { value: AppRole; label: string }[] = [
 
 function UsuariosPage() {
   const [query, setQuery] = useState("");
+  const [alunoQuery, setAlunoQuery] = useState("");
+  const [confirmAluno, setConfirmAluno] = useState<AlunoRow | null>(null);
   const queryClient = useQueryClient();
   const perms = usePermissions();
 
@@ -93,6 +116,49 @@ function UsuariosPage() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const alunosQuery = useQuery({
+    queryKey: ["usuarios-alunos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alunos")
+        .select("id, nome, codigo_publico, cpf, status, aluno_responsavel(responsaveis(nome, cpf))")
+        .is("deleted_at", null)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((a) => {
+        const vincs = (a as unknown as {
+          aluno_responsavel: { responsaveis: { nome: string; cpf: string | null } | null }[];
+        }).aluno_responsavel ?? [];
+        const resps = vincs.map((v) => v.responsaveis).filter(Boolean) as { nome: string; cpf: string | null }[];
+        return {
+          id: a.id,
+          nome: a.nome,
+          codigo_publico: a.codigo_publico,
+          cpf: a.cpf,
+          status: a.status,
+          responsaveis: resps.map((r) => r.nome).join(", "),
+          cpf_responsavel: resps.find((r) => r.cpf)?.cpf ?? null,
+        } as AlunoRow;
+      });
+    },
+  });
+
+  const excluirAluno = useMutation({
+    mutationFn: async (a: AlunoRow) => {
+      const { error: vErr } = await supabase.from("aluno_responsavel").delete().eq("aluno_id", a.id);
+      if (vErr) throw vErr;
+      const { error } = await supabase.from("alunos").delete().eq("id", a.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Aluno excluído definitivamente.");
+      queryClient.invalidateQueries({ queryKey: ["usuarios-alunos"] });
+      queryClient.invalidateQueries({ queryKey: ["alunos"] });
+      setConfirmAluno(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const definirPapel = useMutation({
@@ -162,6 +228,19 @@ function UsuariosPage() {
     return rows.filter((r) => (r.full_name ?? "").toLowerCase().includes(q));
   }, [profilesQuery.data, query]);
 
+  const alunosFiltrados = useMemo(() => {
+    const rows = alunosQuery.data ?? [];
+    const q = alunoQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (a) =>
+        a.nome.toLowerCase().includes(q) ||
+        (a.codigo_publico ?? "").toLowerCase().includes(q) ||
+        (a.cpf ?? "").includes(q.replace(/\D/g, "")) ||
+        a.responsaveis.toLowerCase().includes(q),
+    );
+  }, [alunosQuery.data, alunoQuery]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -172,6 +251,7 @@ function UsuariosPage() {
       <Tabs defaultValue="contas">
         <TabsList>
           <TabsTrigger value="contas">Contas</TabsTrigger>
+          <TabsTrigger value="alunos">Alunos</TabsTrigger>
           <TabsTrigger value="solicitacoes">
             Solicitações
             {(solicitacoesQuery.data ?? []).some((s) => s.status === "Pendente") && (

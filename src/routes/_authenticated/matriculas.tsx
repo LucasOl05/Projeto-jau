@@ -474,6 +474,20 @@ function MatriculasPage() {
                       onChange={(e) => setAlunoNovo({ ...alunoNovo, cpf: maskCPF(e.target.value) })} placeholder="000.000.000-00" />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="an-nasc">Data de nascimento *</Label>
+                    <Input id="an-nasc" inputMode="numeric" value={alunoNovo.data_nascimento}
+                      onChange={(e) => setAlunoNovo({ ...alunoNovo, data_nascimento: maskDate(e.target.value) })}
+                      placeholder="dd/mm/aaaa" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="an-tel">Telefone do aluno *</Label>
+                    <Input id="an-tel" inputMode="tel" value={alunoNovo.telefone}
+                      onChange={(e) => setAlunoNovo({ ...alunoNovo, telefone: maskPhone(e.target.value) })}
+                      placeholder="(00) 00000-0000" />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="an-cod">Matrícula / código (opcional)</Label>
                   <Input id="an-cod" value={alunoNovo.codigo_publico}
@@ -505,13 +519,19 @@ function MatriculasPage() {
                 </div>
 
                 {novoResp && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor="rn-nome">Nome do responsável *</Label>
                       <Input id="rn-nome" value={respNovo.nome} onChange={(e) => setRespNovo({ ...respNovo, nome: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="rn-tel">Telefone</Label>
+                      <Label htmlFor="rn-cpf">CPF do responsável *</Label>
+                      <Input id="rn-cpf" inputMode="numeric" value={respNovo.cpf}
+                        onChange={(e) => setRespNovo({ ...respNovo, cpf: maskCPF(e.target.value) })} placeholder="000.000.000-00" />
+                      <p className="text-[11px] text-muted-foreground">Usado para acesso ao Portal.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rn-tel">Telefone *</Label>
                       <Input id="rn-tel" inputMode="tel" value={respNovo.telefone}
                         onChange={(e) => setRespNovo({ ...respNovo, telefone: maskPhone(e.target.value) })} placeholder="(00) 00000-0000" />
                     </div>
@@ -588,6 +608,63 @@ function MatriculasPage() {
               <Label htmlFor="obs">Observações</Label>
               <Textarea id="obs" rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} />
             </div>
+
+            {!form.id && (
+              <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Plano financeiro</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={plano.ativo ? "secondary" : "outline"}
+                    onClick={() => setPlano({ ...plano, ativo: !plano.ativo })}
+                  >
+                    {plano.ativo ? "Não gerar mensalidades" : "+ Gerar mensalidades"}
+                  </Button>
+                </div>
+                {plano.ativo && (
+                  <>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="pl-valor">Valor da mensalidade (R$) *</Label>
+                        <Input id="pl-valor" inputMode="decimal" value={plano.valor} placeholder="250,00"
+                          onChange={(e) => setPlano({ ...plano, valor: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pl-parc">Parcelas *</Label>
+                        <Input id="pl-parc" inputMode="numeric" value={plano.parcelas}
+                          onChange={(e) => setPlano({ ...plano, parcelas: e.target.value.replace(/\D/g, "").slice(0, 2) })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pl-dia">Dia do vencimento *</Label>
+                        <Input id="pl-dia" inputMode="numeric" value={plano.dia_vencimento}
+                          onChange={(e) => setPlano({ ...plano, dia_vencimento: e.target.value.replace(/\D/g, "").slice(0, 2) })} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="pl-1a">Data da 1ª parcela</Label>
+                        <Input id="pl-1a" type="date" value={plano.primeira}
+                          onChange={(e) => setPlano({ ...plano, primeira: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Forma de pagamento</Label>
+                        <Select value={plano.forma} onValueChange={(v) => setPlano({ ...plano, forma: v as "PIX" | "Boleto" })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PIX">PIX</SelectItem>
+                            <SelectItem value="Boleto">Boleto</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      As parcelas serão criadas no módulo Financeiro. A emissão automática no Asaas (PIX/boleto) entra na próxima fase.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={upsert.isPending}>Salvar</Button>
