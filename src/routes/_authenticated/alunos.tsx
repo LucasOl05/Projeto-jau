@@ -534,22 +534,6 @@ function AlunosPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação remove permanentemente o aluno <strong>{confirmDelete?.nome}</strong> e seus vínculos com responsáveis.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDelete && deleteAluno.mutate(confirmDelete)}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
