@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2 } from "lucide-react";
+import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,9 +13,20 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccessGuard } from "@/components/access-guard";
+import { maskCPF } from "@/lib/masks";
 import { RESOURCES, usePermissions, type AppRole, type ResourceKey } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
@@ -42,6 +53,16 @@ type ProfileRow = {
   ativo: boolean;
 };
 
+type AlunoRow = {
+  id: string;
+  nome: string;
+  codigo_publico: string | null;
+  cpf: string | null;
+  status: string;
+  responsaveis: string;
+  cpf_responsavel: string | null;
+};
+
 const HIDDEN_EMAIL = "matheusoliveiralopes0166@gmail.com";
 
 function formatDate(iso: string) {
@@ -58,6 +79,8 @@ const ROLES: { value: AppRole; label: string }[] = [
 
 function UsuariosPage() {
   const [query, setQuery] = useState("");
+  const [alunoQuery, setAlunoQuery] = useState("");
+  const [confirmAluno, setConfirmAluno] = useState<AlunoRow | null>(null);
   const queryClient = useQueryClient();
   const perms = usePermissions();
 
@@ -93,6 +116,49 @@ function UsuariosPage() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const alunosQuery = useQuery({
+    queryKey: ["usuarios-alunos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alunos")
+        .select("id, nome, codigo_publico, cpf, status, aluno_responsavel(responsaveis(nome, cpf))")
+        .is("deleted_at", null)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((a) => {
+        const vincs = (a as unknown as {
+          aluno_responsavel: { responsaveis: { nome: string; cpf: string | null } | null }[];
+        }).aluno_responsavel ?? [];
+        const resps = vincs.map((v) => v.responsaveis).filter(Boolean) as { nome: string; cpf: string | null }[];
+        return {
+          id: a.id,
+          nome: a.nome,
+          codigo_publico: a.codigo_publico,
+          cpf: a.cpf,
+          status: a.status,
+          responsaveis: resps.map((r) => r.nome).join(", "),
+          cpf_responsavel: resps.find((r) => r.cpf)?.cpf ?? null,
+        } as AlunoRow;
+      });
+    },
+  });
+
+  const excluirAluno = useMutation({
+    mutationFn: async (a: AlunoRow) => {
+      const { error: vErr } = await supabase.from("aluno_responsavel").delete().eq("aluno_id", a.id);
+      if (vErr) throw vErr;
+      const { error } = await supabase.from("alunos").delete().eq("id", a.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Aluno excluído definitivamente.");
+      queryClient.invalidateQueries({ queryKey: ["usuarios-alunos"] });
+      queryClient.invalidateQueries({ queryKey: ["alunos"] });
+      setConfirmAluno(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const definirPapel = useMutation({
@@ -162,6 +228,19 @@ function UsuariosPage() {
     return rows.filter((r) => (r.full_name ?? "").toLowerCase().includes(q));
   }, [profilesQuery.data, query]);
 
+  const alunosFiltrados = useMemo(() => {
+    const rows = alunosQuery.data ?? [];
+    const q = alunoQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (a) =>
+        a.nome.toLowerCase().includes(q) ||
+        (a.codigo_publico ?? "").toLowerCase().includes(q) ||
+        (a.cpf ?? "").includes(q.replace(/\D/g, "")) ||
+        a.responsaveis.toLowerCase().includes(q),
+    );
+  }, [alunosQuery.data, alunoQuery]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -172,6 +251,7 @@ function UsuariosPage() {
       <Tabs defaultValue="contas">
         <TabsList>
           <TabsTrigger value="contas">Contas</TabsTrigger>
+          <TabsTrigger value="alunos">Alunos</TabsTrigger>
           <TabsTrigger value="solicitacoes">
             Solicitações
             {(solicitacoesQuery.data ?? []).some((s) => s.status === "Pendente") && (
@@ -285,6 +365,73 @@ function UsuariosPage() {
       </Card>
         </TabsContent>
 
+        <TabsContent value="alunos" className="mt-4">
+          <Card className="border-border/70">
+            <div className="flex items-center gap-3 border-b border-border/70 p-4">
+              <div className="relative max-w-sm flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={alunoQuery}
+                  onChange={(e) => setAlunoQuery(e.target.value)}
+                  placeholder="Buscar por nome, código (RA), CPF ou responsável..."
+                  className="pl-9"
+                />
+              </div>
+              <div className="ml-auto text-xs text-muted-foreground">
+                {alunosQuery.data ? `${alunosFiltrados.length} aluno(s)` : ""}
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Código / RA</TableHead>
+                    <TableHead>Aluno</TableHead>
+                    <TableHead>CPF do aluno</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>CPF do responsável</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {alunosQuery.isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={6}><Skeleton className="h-4 w-full" /></TableCell>
+                    </TableRow>
+                  )}
+                  {!alunosQuery.isLoading && alunosFiltrados.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                        Nenhum aluno encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {alunosFiltrados.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{a.codigo_publico ?? "—"}</TableCell>
+                      <TableCell className="font-medium">{a.nome}</TableCell>
+                      <TableCell className="text-muted-foreground">{a.cpf ? maskCPF(a.cpf) : "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">{a.responsaveis || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {a.cpf_responsavel ? maskCPF(a.cpf_responsavel) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {perms.isAdmin ? (
+                          <Button size="sm" variant="ghost" title="Excluir definitivamente" onClick={() => setConfirmAluno(a)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="solicitacoes" className="mt-4">
           <Card className="border-border/70">
             <Table>
@@ -368,6 +515,24 @@ function UsuariosPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!confirmAluno} onOpenChange={(v) => !v && setConfirmAluno(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir definitivamente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir o aluno <strong>{confirmAluno?.nome}</strong>? Esta ação é
+              irreversível e cancela o acesso dele ao Portal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmAluno && excluirAluno.mutate(confirmAluno)}>
+              Excluir definitivamente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
