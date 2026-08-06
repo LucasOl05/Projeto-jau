@@ -427,14 +427,9 @@ function AlunosPage() {
                           <FolderOpen className="h-4 w-4" />
                         </Button>
                         {isAdmin && (
-                          <>
-                            <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(a)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" title="Excluir" onClick={() => setConfirmDelete(a)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(a)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
