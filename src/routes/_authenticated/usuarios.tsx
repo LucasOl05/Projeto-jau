@@ -365,13 +365,74 @@ function UsuariosPage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="solicitacoes" className="mt-4">
-          <></>
+        <TabsContent value="alunos" className="mt-4">
+          <Card className="border-border/70">
+            <div className="flex items-center gap-3 border-b border-border/70 p-4">
+              <div className="relative max-w-sm flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={alunoQuery}
+                  onChange={(e) => setAlunoQuery(e.target.value)}
+                  placeholder="Buscar por nome, código (RA), CPF ou responsável..."
+                  className="pl-9"
+                />
+              </div>
+              <div className="ml-auto text-xs text-muted-foreground">
+                {alunosQuery.data ? `${alunosFiltrados.length} aluno(s)` : ""}
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Código / RA</TableHead>
+                    <TableHead>Aluno</TableHead>
+                    <TableHead>CPF do aluno</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>CPF do responsável</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {alunosQuery.isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={6}><Skeleton className="h-4 w-full" /></TableCell>
+                    </TableRow>
+                  )}
+                  {!alunosQuery.isLoading && alunosFiltrados.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                        Nenhum aluno encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {alunosFiltrados.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{a.codigo_publico ?? "—"}</TableCell>
+                      <TableCell className="font-medium">{a.nome}</TableCell>
+                      <TableCell className="text-muted-foreground">{a.cpf ? maskCPF(a.cpf) : "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">{a.responsaveis || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {a.cpf_responsavel ? maskCPF(a.cpf_responsavel) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {perms.isAdmin ? (
+                          <Button size="sm" variant="ghost" title="Excluir definitivamente" onClick={() => setConfirmAluno(a)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
         </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+
+        <TabsContent value="solicitacoes" className="mt-4">
           <Card className="border-border/70">
             <Table>
               <TableHeader>
