@@ -64,6 +64,7 @@ export type Database = {
           rg: string | null
           school_id: string | null
           status: string
+          telefone: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -80,6 +81,7 @@ export type Database = {
           rg?: string | null
           school_id?: string | null
           status?: string
+          telefone?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -96,6 +98,7 @@ export type Database = {
           rg?: string | null
           school_id?: string | null
           status?: string
+          telefone?: string | null
           updated_at?: string
           updated_by?: string | null
         }
