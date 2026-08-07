@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Plus, Search, TrendingDown, Wallet, CheckCircle2, Ban, Trash2 } from "lucide-react";
+import { CircleDollarSign, Plus, Search, TrendingDown, Wallet, CheckCircle2, Ban, Trash2, QrCode } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useServerFn } from "@tanstack/react-start";
+import { gerarCobrancaAsaas } from "@/lib/asaas.functions";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
@@ -480,6 +482,17 @@ function FinanceiroPage() {
                           {st !== "Pago" && st !== "Cancelado" && (
                             <Button size="sm" variant="ghost" title="Dar baixa" onClick={() => openBaixa(m)}>
                               <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {st !== "Pago" && st !== "Cancelado" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              title="Gerar cobrança no Asaas"
+                              disabled={cobrarAsaas.isPending}
+                              onClick={() => cobrarAsaas.mutate(m.id)}
+                            >
+                              <QrCode className="h-4 w-4" />
                             </Button>
                           )}
                           {st !== "Pago" && st !== "Cancelado" && (
