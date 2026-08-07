@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Users } from "lucide-react";
+import { Copy, Users, PlugZap } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { testarConexaoAsaas } from "@/lib/asaas.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -41,6 +43,7 @@ type Config = {
   waseller_token: string | null;
   waseller_endpoint: string | null;
   portal_url: string | null;
+  asaas_webhook_token: string | null;
 };
 
 function ConfiguracoesPage() {
@@ -52,7 +55,9 @@ function ConfiguracoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("configuracoes")
-        .select("id, school_id, notas_habilitadas, asaas_ambiente, asaas_api_key, waseller_token, waseller_endpoint, portal_url")
+        .select(
+          "id, school_id, notas_habilitadas, asaas_ambiente, asaas_api_key, asaas_webhook_token, waseller_token, waseller_endpoint, portal_url",
+        )
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -79,6 +84,13 @@ function ConfiguracoesPage() {
 
   const webhookUrl =
     typeof window !== "undefined" ? `${window.location.origin}/api/public/asaas-webhook` : "/api/public/asaas-webhook";
+
+  const testar = useServerFn(testarConexaoAsaas);
+  const testarConexao = useMutation({
+    mutationFn: async () => await testar({ data: undefined as never }),
+    onSuccess: (r) => toast.success(`Conexão OK (${r.ambiente}).`),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   if (configQuery.isLoading) {
     return (
@@ -173,6 +185,20 @@ function ConfiguracoesPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="asaas_webhook_token">Token de Segurança do Webhook</Label>
+              <Input
+                id="asaas_webhook_token"
+                type="password"
+                value={form.asaas_webhook_token ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, asaas_webhook_token: e.target.value }))}
+                placeholder="whsec_..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Use o mesmo valor no campo "Token de autenticação" do webhook no Asaas. Requisições sem esse token são
+                recusadas.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>URL de Webhook do ERP</Label>
               <div className="flex gap-2">
                 <Input readOnly value={webhookUrl} className="font-mono text-xs" />
@@ -191,17 +217,24 @@ function ConfiguracoesPage() {
                 Cadastre essa URL no Asaas para receber o evento PAYMENT_RECEIVED.
               </p>
             </div>
-            <Button
-              onClick={() =>
-                salvar.mutate({
-                  asaas_ambiente: form.asaas_ambiente ?? "sandbox",
-                  asaas_api_key: form.asaas_api_key ?? null,
-                })
-              }
-              disabled={salvar.isPending}
-            >
-              Salvar integração Asaas
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() =>
+                  salvar.mutate({
+                    asaas_ambiente: form.asaas_ambiente ?? "sandbox",
+                    asaas_api_key: form.asaas_api_key ?? null,
+                    asaas_webhook_token: form.asaas_webhook_token ?? null,
+                  })
+                }
+                disabled={salvar.isPending}
+              >
+                Salvar integração Asaas
+              </Button>
+              <Button variant="outline" onClick={() => testarConexao.mutate()} disabled={testarConexao.isPending}>
+                <PlugZap className="mr-2 h-4 w-4" />
+                {testarConexao.isPending ? "Testando..." : "Testar conexão"}
+              </Button>
+            </div>
           </Card>
         </TabsContent>
 

@@ -52,6 +52,7 @@ export type Database = {
       }
       alunos: {
         Row: {
+          asaas_customer_id: string | null
           codigo_publico: string | null
           cpf: string | null
           created_at: string
@@ -69,6 +70,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          asaas_customer_id?: string | null
           codigo_publico?: string | null
           cpf?: string | null
           created_at?: string
@@ -86,6 +88,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          asaas_customer_id?: string | null
           codigo_publico?: string | null
           cpf?: string | null
           created_at?: string
@@ -250,6 +253,7 @@ export type Database = {
         Row: {
           asaas_ambiente: string
           asaas_api_key: string | null
+          asaas_webhook_token: string | null
           created_at: string
           id: string
           notas_habilitadas: boolean
@@ -263,6 +267,7 @@ export type Database = {
         Insert: {
           asaas_ambiente?: string
           asaas_api_key?: string | null
+          asaas_webhook_token?: string | null
           created_at?: string
           id?: string
           notas_habilitadas?: boolean
@@ -276,6 +281,7 @@ export type Database = {
         Update: {
           asaas_ambiente?: string
           asaas_api_key?: string | null
+          asaas_webhook_token?: string | null
           created_at?: string
           id?: string
           notas_habilitadas?: boolean
@@ -717,6 +723,10 @@ export type Database = {
       mensalidades: {
         Row: {
           aluno_id: string
+          asaas_bank_slip_url: string | null
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
+          asaas_pix_payload: string | null
           codigo_publico: string | null
           competencia: string | null
           created_at: string
@@ -739,6 +749,10 @@ export type Database = {
         }
         Insert: {
           aluno_id: string
+          asaas_bank_slip_url?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
           codigo_publico?: string | null
           competencia?: string | null
           created_at?: string
@@ -761,6 +775,10 @@ export type Database = {
         }
         Update: {
           aluno_id?: string
+          asaas_bank_slip_url?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
           codigo_publico?: string | null
           competencia?: string | null
           created_at?: string
@@ -880,6 +898,7 @@ export type Database = {
       }
       responsaveis: {
         Row: {
+          asaas_customer_id: string | null
           cpf: string | null
           created_at: string
           deleted_at: string | null
@@ -890,6 +909,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          asaas_customer_id?: string | null
           cpf?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -900,6 +920,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          asaas_customer_id?: string | null
           cpf?: string | null
           created_at?: string
           deleted_at?: string | null
