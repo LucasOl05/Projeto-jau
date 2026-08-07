@@ -338,7 +338,6 @@ function FinanceiroPage() {
   }, [listQuery.data]);
 
   function openBaixa(m: Mensalidade) {
-    void 0;
     setBaixaForm({
       id: m.id,
       data_pagamento: todayISO(),
