@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PortalAcessoRouteImport } from './routes/portal-acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAlunosRouteImport } from './routes/_authenticated/alunos'
 import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api/public/asaas-webhook'
 
+const PortalAcessoRoute = PortalAcessoRouteImport.update({
+  id: '/portal-acesso',
+  path: '/portal-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -131,6 +137,7 @@ const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/portal-acesso': typeof PortalAcessoRoute
   '/alunos': typeof AuthenticatedAlunosRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cursos': typeof AuthenticatedCursosRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/portal-acesso': typeof PortalAcessoRoute
   '/alunos': typeof AuthenticatedAlunosRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cursos': typeof AuthenticatedCursosRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/portal-acesso': typeof PortalAcessoRoute
   '/_authenticated/alunos': typeof AuthenticatedAlunosRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/cursos': typeof AuthenticatedCursosRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/portal-acesso'
     | '/alunos'
     | '/configuracoes'
     | '/cursos'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/portal-acesso'
     | '/alunos'
     | '/configuracoes'
     | '/cursos'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/portal-acesso'
     | '/_authenticated/alunos'
     | '/_authenticated/configuracoes'
     | '/_authenticated/cursos'
@@ -258,11 +270,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PortalAcessoRoute: typeof PortalAcessoRoute
   ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/portal-acesso': {
+      id: '/portal-acesso'
+      path: '/portal-acesso'
+      fullPath: '/portal-acesso'
+      preLoaderRoute: typeof PortalAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PortalAcessoRoute: PortalAcessoRoute,
   ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
 }
 export const routeTree = rootRouteImport

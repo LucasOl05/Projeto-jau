@@ -210,7 +210,10 @@ function AuthPage() {
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Uso restrito à equipe da escola.
+          Uso restrito à equipe da escola. Aluno ou responsável?{" "}
+          <Link to="/portal-acesso" className="underline underline-offset-4">
+            Acessar o Portal
+          </Link>
         </p>
       </div>
     </div>
