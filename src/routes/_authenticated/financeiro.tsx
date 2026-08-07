@@ -347,6 +347,18 @@ function FinanceiroPage() {
     setBaixaOpen(true);
   }
 
+  const gerarCobranca = useServerFn(gerarCobrancaAsaas);
+  const cobrarAsaas = useMutation({
+    mutationFn: async (mensalidadeId: string) =>
+      await gerarCobranca({ data: { mensalidadeId, billingType: "UNDEFINED" as const } }),
+    onSuccess: (r) => {
+      toast.success(r.reused ? "Cobrança já existente no Asaas." : "Cobrança gerada no Asaas.");
+      if (r.invoiceUrl) window.open(r.invoiceUrl, "_blank", "noopener");
+      queryClient.invalidateQueries({ queryKey: ["mensalidades"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   function handleBaixaSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!baixaForm) return;
