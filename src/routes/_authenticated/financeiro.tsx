@@ -354,7 +354,7 @@ function FinanceiroPage() {
     onSuccess: (r) => {
       toast.success(r.reused ? "Cobrança já existente no Asaas." : "Cobrança gerada no Asaas.");
       if (r.invoiceUrl) window.open(r.invoiceUrl, "_blank", "noopener");
-      queryClient.invalidateQueries({ queryKey: ["mensalidades"] });
+      qc.invalidateQueries({ queryKey: ["mensalidades"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
