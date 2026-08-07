@@ -250,6 +250,7 @@ export type Database = {
         Row: {
           asaas_ambiente: string
           asaas_api_key: string | null
+          asaas_webhook_token: string | null
           created_at: string
           id: string
           notas_habilitadas: boolean
@@ -263,6 +264,7 @@ export type Database = {
         Insert: {
           asaas_ambiente?: string
           asaas_api_key?: string | null
+          asaas_webhook_token?: string | null
           created_at?: string
           id?: string
           notas_habilitadas?: boolean
@@ -276,6 +278,7 @@ export type Database = {
         Update: {
           asaas_ambiente?: string
           asaas_api_key?: string | null
+          asaas_webhook_token?: string | null
           created_at?: string
           id?: string
           notas_habilitadas?: boolean
