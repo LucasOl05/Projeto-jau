@@ -12,13 +12,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PortalDashboard, PortalLoginForm } from "@/components/portal-publico-shared";
+import type { PortalSessao } from "@/lib/portal-publico.server";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Entrar — JAU ERP" },
-      { name: "description", content: "Acesse o sistema de gestão da JAU." },
+      { title: "Acesso — JAU ERP" },
+      { name: "description", content: "Acesse o sistema de gestão da JAU ou o portal do aluno e responsável." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -38,6 +40,7 @@ function AuthPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [showSignInPw, setShowSignInPw] = useState(false);
   const [showSignUpPw, setShowSignUpPw] = useState(false);
+  const [portalSessao, setPortalSessao] = useState<PortalSessao | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -106,6 +109,14 @@ function AuthPage() {
     );
   }
 
+  if (portalSessao) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/40 px-4 py-8">
+        <PortalDashboard sessao={portalSessao} onLogout={() => setPortalSessao(null)} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-accent/40 px-4 py-12">
       <div className="absolute right-4 top-4">
@@ -123,12 +134,13 @@ function AuthPage() {
         <Card className="border-border/80 shadow-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Acesso ao sistema</CardTitle>
-            <CardDescription>Entre com sua conta ou cadastre-se.</CardDescription>
+            <CardDescription>Equipe, alunos e responsáveis em um só lugar.</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
+                <TabsTrigger value="portal">Portal</TabsTrigger>
                 <TabsTrigger value="signup">Cadastrar</TabsTrigger>
               </TabsList>
 
@@ -163,7 +175,12 @@ function AuthPage() {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar
                   </Button>
+                  <p className="text-center text-xs text-muted-foreground">Uso restrito à equipe da escola.</p>
                 </form>
+              </TabsContent>
+
+              <TabsContent value="portal" className="mt-4">
+                <PortalLoginForm onSuccess={setPortalSessao} />
               </TabsContent>
 
               <TabsContent value="signup" className="mt-4">
@@ -208,13 +225,6 @@ function AuthPage() {
             </Tabs>
           </CardContent>
         </Card>
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Uso restrito à equipe da escola. Aluno ou responsável?{" "}
-          <Link to="/portal-acesso" className="underline underline-offset-4">
-            Acessar o Portal
-          </Link>
-        </p>
       </div>
     </div>
   );
