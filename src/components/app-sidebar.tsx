@@ -63,6 +63,7 @@ const groups: { label: string; items: NavItem[] }[] = [
     label: "Gestão",
     items: [
       { title: "Financeiro", url: "/financeiro", icon: Wallet, resource: "financeiro" },
+      { title: "Empresas (B2B)", url: "/empresas", icon: Building2, resource: "financeiro" },
       { title: "Relatórios", url: "/relatorios", icon: FileText, resource: "relatorios" },
       { title: "Portal do Aluno", url: "/portal", icon: Smartphone, resource: "portal" },
       { title: "Usuários", url: "/usuarios", icon: Users, resource: "usuarios" },

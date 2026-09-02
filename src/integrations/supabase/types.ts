@@ -620,6 +620,78 @@ export type Database = {
           },
         ]
       }
+      empresas: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          codigo_publico: string | null
+          contato_email: string | null
+          contato_nome: string | null
+          contato_telefone: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome_fantasia: string | null
+          numero: string | null
+          razao_social: string
+          status: string
+          telefone: string | null
+          uf: string | null
+          updated_at: string
+          valor_contrato: number | null
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          codigo_publico?: string | null
+          contato_email?: string | null
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_fantasia?: string | null
+          numero?: string | null
+          razao_social: string
+          status?: string
+          telefone?: string | null
+          uf?: string | null
+          updated_at?: string
+          valor_contrato?: number | null
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          codigo_publico?: string | null
+          contato_email?: string | null
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_fantasia?: string | null
+          numero?: string | null
+          razao_social?: string
+          status?: string
+          telefone?: string | null
+          uf?: string | null
+          updated_at?: string
+          valor_contrato?: number | null
+        }
+        Relationships: []
+      }
       escolas: {
         Row: {
           ativa: boolean
@@ -646,6 +718,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      faturas_empresas: {
+        Row: {
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
+          asaas_pix_payload: string | null
+          codigo_publico: string | null
+          competencia: string | null
+          created_at: string
+          data_pagamento: string | null
+          deleted_at: string | null
+          descricao: string | null
+          empresa_id: string
+          id: string
+          nfse_numero: string | null
+          nfse_url: string | null
+          status: string
+          updated_at: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
+          codigo_publico?: string | null
+          competencia?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          deleted_at?: string | null
+          descricao?: string | null
+          empresa_id: string
+          id?: string
+          nfse_numero?: string | null
+          nfse_url?: string | null
+          status?: string
+          updated_at?: string
+          valor: number
+          vencimento: string
+        }
+        Update: {
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
+          codigo_publico?: string | null
+          competencia?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          deleted_at?: string | null
+          descricao?: string | null
+          empresa_id?: string
+          id?: string
+          nfse_numero?: string | null
+          nfse_url?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_empresas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matriculas: {
         Row: {
