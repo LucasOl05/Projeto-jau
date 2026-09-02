@@ -22,6 +22,7 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMatriculasRouteImport } from './routes/_authenticated/matriculas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEstruturaRouteImport } from './routes/_authenticated/estrutura'
+import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
 import { Route as AuthenticatedDisciplinasRouteImport } from './routes/_authenticated/disciplinas'
 import { Route as AuthenticatedDiarioRouteImport } from './routes/_authenticated/diario'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -96,6 +97,11 @@ const AuthenticatedEstruturaRoute = AuthenticatedEstruturaRouteImport.update({
   path: '/estrutura',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEmpresasRoute = AuthenticatedEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDisciplinasRoute =
   AuthenticatedDisciplinasRouteImport.update({
     id: '/disciplinas',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/empresas': typeof AuthenticatedEmpresasRoute
   '/estrutura': typeof AuthenticatedEstruturaRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diario': typeof AuthenticatedDiarioRoute
   '/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/empresas': typeof AuthenticatedEmpresasRoute
   '/estrutura': typeof AuthenticatedEstruturaRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/matriculas': typeof AuthenticatedMatriculasRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/diario': typeof AuthenticatedDiarioRoute
   '/_authenticated/disciplinas': typeof AuthenticatedDisciplinasRoute
+  '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
   '/_authenticated/estrutura': typeof AuthenticatedEstruturaRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/matriculas': typeof AuthenticatedMatriculasRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/empresas'
     | '/estrutura'
     | '/financeiro'
     | '/matriculas'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diario'
     | '/disciplinas'
+    | '/empresas'
     | '/estrutura'
     | '/financeiro'
     | '/matriculas'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/diario'
     | '/_authenticated/disciplinas'
+    | '/_authenticated/empresas'
     | '/_authenticated/estrutura'
     | '/_authenticated/financeiro'
     | '/_authenticated/matriculas'
@@ -367,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEstruturaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/empresas': {
+      id: '/_authenticated/empresas'
+      path: '/empresas'
+      fullPath: '/empresas'
+      preLoaderRoute: typeof AuthenticatedEmpresasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/disciplinas': {
       id: '/_authenticated/disciplinas'
       path: '/disciplinas'
@@ -426,6 +445,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiarioRoute: typeof AuthenticatedDiarioRoute
   AuthenticatedDisciplinasRoute: typeof AuthenticatedDisciplinasRoute
+  AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
   AuthenticatedEstruturaRoute: typeof AuthenticatedEstruturaRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedMatriculasRoute: typeof AuthenticatedMatriculasRoute
@@ -444,6 +464,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiarioRoute: AuthenticatedDiarioRoute,
   AuthenticatedDisciplinasRoute: AuthenticatedDisciplinasRoute,
+  AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
   AuthenticatedEstruturaRoute: AuthenticatedEstruturaRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedMatriculasRoute: AuthenticatedMatriculasRoute,
