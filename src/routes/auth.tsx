@@ -137,12 +137,16 @@ function AuthPage() {
             <CardDescription>Equipe, alunos e responsáveis em um só lugar.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs defaultValue="portal" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="portal">Portal pais e aluno</TabsTrigger>
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
-                <TabsTrigger value="portal">Portal</TabsTrigger>
                 <TabsTrigger value="signup">Cadastrar</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="portal" className="mt-4">
+                <PortalLoginForm onSuccess={setPortalSessao} />
+              </TabsContent>
 
               <TabsContent value="signin" className="mt-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
@@ -177,10 +181,6 @@ function AuthPage() {
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">Uso restrito à equipe da escola.</p>
                 </form>
-              </TabsContent>
-
-              <TabsContent value="portal" className="mt-4">
-                <PortalLoginForm onSuccess={setPortalSessao} />
               </TabsContent>
 
               <TabsContent value="signup" className="mt-4">

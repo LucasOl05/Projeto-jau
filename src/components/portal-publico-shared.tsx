@@ -78,7 +78,7 @@ export function PortalLoginForm({ onSuccess }: { onSuccess: (s: PortalSessao) =>
         Acessar portal
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Acesso sem senha: use o CPF ou RA do aluno e a data de nascimento.
+        Acesso sem senha: use o CPF ou a matrícula do aluno e a data de nascimento.
       </p>
     </form>
   );
