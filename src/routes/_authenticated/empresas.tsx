@@ -281,20 +281,21 @@ function EmpresasPage() {
       <PageHeader
         title="Empresas (B2B)"
         description="Empresas parceiras, contratos e faturamento via Asaas com NFS-e."
-      >
-        {perms.isAdmin && (
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setForm(emptyEmpresa);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nova empresa
-          </Button>
-        )}
-      </PageHeader>
+        actions={
+          perms.isAdmin ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setForm(emptyEmpresa);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova empresa
+            </Button>
+          ) : undefined
+        }
+      />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
