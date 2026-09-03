@@ -53,12 +53,12 @@ export function PortalLoginForm({ onSuccess }: { onSuccess: (s: PortalSessao) =>
       }}
     >
       <div className="space-y-2">
-        <Label htmlFor="portal-identificador">CPF do aluno ou RA</Label>
+        <Label htmlFor="portal-identificador">CPF do aluno ou Matrícula</Label>
         <Input
           id="portal-identificador"
           value={identificador}
           onChange={(e) => setIdentificador(e.target.value)}
-          placeholder="000.000.000-00 ou ALU-000001"
+          placeholder="000.000.000-00 ou nº de matrícula"
           required
         />
       </div>
@@ -78,7 +78,7 @@ export function PortalLoginForm({ onSuccess }: { onSuccess: (s: PortalSessao) =>
         Acessar portal
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Acesso sem senha: use o CPF ou RA do aluno e a data de nascimento.
+        Acesso sem senha: use o CPF ou a matrícula do aluno e a data de nascimento.
       </p>
     </form>
   );
