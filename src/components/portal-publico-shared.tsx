@@ -53,12 +53,12 @@ export function PortalLoginForm({ onSuccess }: { onSuccess: (s: PortalSessao) =>
       }}
     >
       <div className="space-y-2">
-        <Label htmlFor="portal-identificador">CPF do aluno ou RA</Label>
+        <Label htmlFor="portal-identificador">CPF do aluno ou Matrícula</Label>
         <Input
           id="portal-identificador"
           value={identificador}
           onChange={(e) => setIdentificador(e.target.value)}
-          placeholder="000.000.000-00 ou ALU-000001"
+          placeholder="000.000.000-00 ou nº de matrícula"
           required
         />
       </div>
