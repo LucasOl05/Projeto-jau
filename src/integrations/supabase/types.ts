@@ -406,14 +406,17 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_aula: string
+          data_aula_original: string | null
           deleted_at: string | null
           disciplina_id: string
           id: string
           justificativa_retroativa: string | null
+          motivo_reposicao: string | null
           observacoes: string | null
           planejamento_proxima_aula: string | null
           school_id: string
           status: string
+          tipo_aula: string
           turma_id: string
           updated_at: string
           updated_by: string | null
@@ -424,14 +427,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_aula: string
+          data_aula_original?: string | null
           deleted_at?: string | null
           disciplina_id: string
           id?: string
           justificativa_retroativa?: string | null
+          motivo_reposicao?: string | null
           observacoes?: string | null
           planejamento_proxima_aula?: string | null
           school_id?: string
           status?: string
+          tipo_aula?: string
           turma_id: string
           updated_at?: string
           updated_by?: string | null
@@ -442,14 +448,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_aula?: string
+          data_aula_original?: string | null
           deleted_at?: string | null
           disciplina_id?: string
           id?: string
           justificativa_retroativa?: string | null
+          motivo_reposicao?: string | null
           observacoes?: string | null
           planejamento_proxima_aula?: string | null
           school_id?: string
           status?: string
+          tipo_aula?: string
           turma_id?: string
           updated_at?: string
           updated_by?: string | null
