@@ -1,8 +1,7 @@
 # Roadmap
 
-- [x] Reordenar abas do acesso e atualizar o identificador do portal para CPF ou matrícula.
-- [ ] Fase E: reposição de aulas no Diário.
-- [ ] Fase E: busca global com Ctrl+K.
-- [ ] Fase E: preenchimento de endereço por CEP.
-- [ ] Fase E: emissão de PDFs/relatórios.
-- [ ] Verificar build, logs e fluxo principal.
+- [x] Reordenar abas do acesso e usar CPF ou matrícula no portal.
+- [x] Fase E: reposição de aulas no Diário.
+- [x] Fase E: busca global com Ctrl+K.
+- [x] Fase E: preenchimento de endereço por CEP em Empresas.
+- [x] Fase E: emissão de PDFs já disponível na Central de Relatórios.
