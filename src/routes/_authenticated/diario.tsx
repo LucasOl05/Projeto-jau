@@ -64,6 +64,9 @@ function DiarioPage() {
   const [conteudo, setConteudo] = useState("");
   const [planejamento, setPlanejamento] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [tipoAula, setTipoAula] = useState<"Normal" | "Reposição">("Normal");
+  const [dataOriginal, setDataOriginal] = useState("");
+  const [motivoReposicao, setMotivoReposicao] = useState("");
   const [justificativa, setJustificativa] = useState("");
   const [chamada, setChamada] = useState<Record<string, Situacao>>({});
 
@@ -124,7 +127,7 @@ function DiarioPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("diario_classe")
-        .select("id, conteudo_ministrado, planejamento_proxima_aula, observacoes, justificativa_retroativa, diario_chamada(aluno_id, situacao, presente)")
+        .select("id, conteudo_ministrado, planejamento_proxima_aula, observacoes, justificativa_retroativa, tipo_aula, data_aula_original, motivo_reposicao, diario_chamada(aluno_id, situacao, presente)")
         .eq("turma_id", turmaId)
         .eq("disciplina_id", disciplinaId)
         .eq("data_aula", dataAula)
@@ -141,6 +144,9 @@ function DiarioPage() {
       setConteudo(d.conteudo_ministrado ?? "");
       setPlanejamento(d.planejamento_proxima_aula ?? "");
       setObservacoes(d.observacoes ?? "");
+      setTipoAula((d.tipo_aula as "Normal" | "Reposição") ?? "Normal");
+      setDataOriginal(d.data_aula_original ?? "");
+      setMotivoReposicao(d.motivo_reposicao ?? "");
       setJustificativa(d.justificativa_retroativa ?? "");
       const map: Record<string, Situacao> = {};
       (d.diario_chamada ?? []).forEach((c: any) => {
@@ -195,6 +201,8 @@ function DiarioPage() {
     mutationFn: async () => {
       if (!turmaId || !disciplinaId || !dataAula) throw new Error("Selecione turma, disciplina e data.");
       if (!conteudo.trim()) throw new Error("Informe o conteúdo ministrado.");
+      if (tipoAula === "Reposição" && !dataOriginal)
+        throw new Error("Informe a data da aula original que está sendo reposta.");
       if (needsJustificativa && justificativa.trim().length < 5)
         throw new Error("Justificativa obrigatória (mínimo 5 caracteres) para edição retroativa.");
 
@@ -208,6 +216,9 @@ function DiarioPage() {
             conteudo_ministrado: conteudo,
             planejamento_proxima_aula: planejamento.trim() || null,
             observacoes: observacoes.trim() || null,
+            tipo_aula: tipoAula,
+            data_aula_original: tipoAula === "Reposição" ? dataOriginal : null,
+            motivo_reposicao: tipoAula === "Reposição" ? motivoReposicao.trim() || null : null,
             justificativa_retroativa: needsJustificativa ? justificativa : existing.justificativa_retroativa,
           })
           .eq("id", diarioId);
@@ -222,6 +233,9 @@ function DiarioPage() {
             conteudo_ministrado: conteudo,
             planejamento_proxima_aula: planejamento.trim() || null,
             observacoes: observacoes.trim() || null,
+            tipo_aula: tipoAula,
+            data_aula_original: tipoAula === "Reposição" ? dataOriginal : null,
+            motivo_reposicao: tipoAula === "Reposição" ? motivoReposicao.trim() || null : null,
             justificativa_retroativa: needsJustificativa ? justificativa : null,
           })
           .select("id")
@@ -312,6 +326,37 @@ function DiarioPage() {
             <Label>Data da aula</Label>
             <Input type="date" value={dataAula} onChange={(e) => setDataAula(e.target.value)} />
           </div>
+        </div>
+
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label>Tipo de aula</Label>
+            <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as "Normal" | "Reposição")}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Normal">Aula normal</SelectItem>
+                <SelectItem value="Reposição">Reposição de aula</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {tipoAula === "Reposição" && (
+            <>
+              <div className="space-y-1.5">
+                <Label>Data da aula reposta</Label>
+                <Input type="date" value={dataOriginal} onChange={(e) => setDataOriginal(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Motivo da reposição</Label>
+                <Input
+                  value={motivoReposicao}
+                  onChange={(e) => setMotivoReposicao(e.target.value)}
+                  placeholder="Feriado, ausência do professor..."
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {isRetroativo && (
