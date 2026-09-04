@@ -157,6 +157,9 @@ function DiarioPage() {
       setConteudo("");
       setPlanejamento("");
       setObservacoes("");
+      setTipoAula("Normal");
+      setDataOriginal("");
+      setMotivoReposicao("");
       setJustificativa("");
       setChamada({});
     }
