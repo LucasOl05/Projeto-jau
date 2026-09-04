@@ -46,7 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { maskCNPJ, maskPhone, maskCEP, maskDate, brDateToISO } from "@/lib/masks";
+import { maskCNPJ, maskPhone, maskCEP, maskDate, brDateToISO, buscarEnderecoPorCEP } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/empresas")({
   head: () => ({
@@ -458,6 +458,18 @@ function EmpresasPage() {
               <Input
                 value={form.cep}
                 onChange={(e) => setForm({ ...form, cep: maskCEP(e.target.value) })}
+                onBlur={async (e) => {
+                  const endereco = await buscarEnderecoPorCEP(e.target.value);
+                  if (!endereco) return;
+                  setForm((f) => ({
+                    ...f,
+                    endereco: endereco.logradouro || f.endereco,
+                    bairro: endereco.bairro || f.bairro,
+                    cidade: endereco.cidade || f.cidade,
+                    uf: endereco.uf || f.uf,
+                  }));
+                  toast.success("Endereço preenchido pelo CEP.");
+                }}
                 placeholder="00000-000"
               />
             </div>

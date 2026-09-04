@@ -79,3 +79,29 @@ export function isValidCPF(input: string): boolean {
 export function onlyDigits(v: string) {
   return v.replace(/\D/g, "");
 }
+export type EnderecoCEP = {
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+};
+
+/** Consulta o ViaCEP e devolve o endereço, ou null quando o CEP não existe. */
+export async function buscarEnderecoPorCEP(cep: string): Promise<EnderecoCEP | null> {
+  const digitos = cep.replace(/\D/g, "");
+  if (digitos.length !== 8) return null;
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${digitos}/json/`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as Record<string, string> & { erro?: boolean | string };
+    if (data.erro) return null;
+    return {
+      logradouro: data.logradouro ?? "",
+      bairro: data.bairro ?? "",
+      cidade: data.localidade ?? "",
+      uf: (data.uf ?? "").toUpperCase(),
+    };
+  } catch {
+    return null;
+  }
+}

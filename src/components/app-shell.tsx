@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GlobalSearch } from "@/components/global-search";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/70 bg-background/95 px-4 backdrop-blur">
             <SidebarTrigger />
+            <GlobalSearch />
             <div className="ml-auto flex items-center gap-3">
               <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
               <ThemeToggle />
