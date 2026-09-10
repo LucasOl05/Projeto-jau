@@ -109,3 +109,74 @@ export const gerarCobrancaAsaas = createServerFn({ method: "POST" })
 
     return { paymentId: payment.id, invoiceUrl: payment.invoiceUrl ?? null, reused: false };
   });
+
+/** Cria a cobrança no Asaas para uma fatura de empresa (B2B). */
+export const gerarCobrancaEmpresaAsaas = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        faturaId: z.string().uuid(),
+        billingType: z.enum(["PIX", "BOLETO", "UNDEFINED"]).default("BOLETO"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { loadAsaasConfig, asaasFetch, ensureAsaasCustomerEmpresa } = await import("./asaas.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const cfg = await loadAsaasConfig();
+
+    const { data: fatura, error } = await supabaseAdmin
+      .from("faturas_empresas")
+      .select(
+        "id, valor, vencimento, descricao, competencia, status, empresa_id, asaas_payment_id, asaas_invoice_url, empresas(id, razao_social, cnpj, email, telefone, asaas_customer_id)",
+      )
+      .eq("id", data.faturaId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    if (!fatura) throw new Error("Fatura não encontrada.");
+
+    const f = fatura as any;
+    if (f.asaas_payment_id) {
+      return { paymentId: f.asaas_payment_id as string, invoiceUrl: f.asaas_invoice_url as string | null, reused: true };
+    }
+
+    const customerId = await ensureAsaasCustomerEmpresa(cfg, f.empresas);
+
+    const payment = await asaasFetch<{ id: string; invoiceUrl?: string; bankSlipUrl?: string }>(cfg, "/payments", {
+      method: "POST",
+      body: {
+        customer: customerId,
+        billingType: data.billingType,
+        value: Number(f.valor),
+        dueDate: f.vencimento,
+        description: f.descricao ?? f.competencia ?? "Fatura",
+        externalReference: f.id,
+      },
+    });
+
+    let pixPayload: string | null = null;
+    if (data.billingType === "PIX") {
+      try {
+        const pix = await asaasFetch<{ payload?: string }>(cfg, `/payments/${payment.id}/pixQrCode`);
+        pixPayload = pix.payload ?? null;
+      } catch {
+        pixPayload = null;
+      }
+    }
+
+    await supabaseAdmin
+      .from("faturas_empresas")
+      .update({
+        asaas_payment_id: payment.id,
+        asaas_invoice_url: payment.invoiceUrl ?? null,
+        asaas_bank_slip_url: payment.bankSlipUrl ?? null,
+        asaas_pix_payload: pixPayload,
+        forma_pagamento: data.billingType,
+      } as any)
+      .eq("id", f.id);
+
+    return { paymentId: payment.id, invoiceUrl: payment.invoiceUrl ?? null, reused: false };
+  });
