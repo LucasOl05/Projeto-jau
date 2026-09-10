@@ -631,6 +631,7 @@ export type Database = {
       }
       empresas: {
         Row: {
+          asaas_customer_id: string | null
           bairro: string | null
           cep: string | null
           cidade: string | null
@@ -654,6 +655,7 @@ export type Database = {
           valor_contrato: number | null
         }
         Insert: {
+          asaas_customer_id?: string | null
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
@@ -677,6 +679,7 @@ export type Database = {
           valor_contrato?: number | null
         }
         Update: {
+          asaas_customer_id?: string | null
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
@@ -730,6 +733,7 @@ export type Database = {
       }
       faturas_empresas: {
         Row: {
+          asaas_bank_slip_url: string | null
           asaas_invoice_url: string | null
           asaas_payment_id: string | null
           asaas_pix_payload: string | null
@@ -740,15 +744,21 @@ export type Database = {
           deleted_at: string | null
           descricao: string | null
           empresa_id: string
+          forma_pagamento: string | null
           id: string
           nfse_numero: string | null
           nfse_url: string | null
+          numero_nfse: string | null
           status: string
+          status_fiscal: string
           updated_at: string
+          url_pdf_nfse: string | null
+          url_xml_nfse: string | null
           valor: number
           vencimento: string
         }
         Insert: {
+          asaas_bank_slip_url?: string | null
           asaas_invoice_url?: string | null
           asaas_payment_id?: string | null
           asaas_pix_payload?: string | null
@@ -759,15 +769,21 @@ export type Database = {
           deleted_at?: string | null
           descricao?: string | null
           empresa_id: string
+          forma_pagamento?: string | null
           id?: string
           nfse_numero?: string | null
           nfse_url?: string | null
+          numero_nfse?: string | null
           status?: string
+          status_fiscal?: string
           updated_at?: string
+          url_pdf_nfse?: string | null
+          url_xml_nfse?: string | null
           valor: number
           vencimento: string
         }
         Update: {
+          asaas_bank_slip_url?: string | null
           asaas_invoice_url?: string | null
           asaas_payment_id?: string | null
           asaas_pix_payload?: string | null
@@ -778,11 +794,16 @@ export type Database = {
           deleted_at?: string | null
           descricao?: string | null
           empresa_id?: string
+          forma_pagamento?: string | null
           id?: string
           nfse_numero?: string | null
           nfse_url?: string | null
+          numero_nfse?: string | null
           status?: string
+          status_fiscal?: string
           updated_at?: string
+          url_pdf_nfse?: string | null
+          url_xml_nfse?: string | null
           valor?: number
           vencimento?: string
         }
@@ -975,6 +996,50 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "escolas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mensalidades_empresas: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          dia_vencimento: number
+          empresa_id: string
+          forma_pagamento: string
+          id: string
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          dia_vencimento?: number
+          empresa_id: string
+          forma_pagamento?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          dia_vencimento?: number
+          empresa_id?: string
+          forma_pagamento?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensalidades_empresas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
