@@ -40,10 +40,23 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
               forma_pagamento: payment.billingType === "PIX" ? "PIX" : payment.billingType === "BOLETO" ? "Boleto" : "Cartão",
             } as never)
             .eq("asaas_payment_id" as never, payment.id as never);
+          // B2B: baixa idempotente da fatura de empresa (só altera se ainda não está paga).
+          await supabaseAdmin
+            .from("faturas_empresas")
+            .update({
+              status: "Paga",
+              data_pagamento: payment.paymentDate ?? new Date().toISOString().slice(0, 10),
+            } as never)
+            .eq("asaas_payment_id" as never, payment.id as never)
+            .neq("status" as never, "Paga" as never);
         } else if (estornos.includes(payload.event)) {
           await supabaseAdmin
             .from("mensalidades")
             .update({ status: "Pendente", data_pagamento: null, valor_pago: null } as never)
+            .eq("asaas_payment_id" as never, payment.id as never);
+          await supabaseAdmin
+            .from("faturas_empresas")
+            .update({ status: "Pendente", data_pagamento: null } as never)
             .eq("asaas_payment_id" as never, payment.id as never);
         }
 
