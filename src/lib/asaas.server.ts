@@ -94,3 +94,35 @@ export async function ensureAsaasCustomer(
   await supabaseAdmin.from(pagador.tabela).update({ asaas_customer_id: customer.id }).eq("id", pagador.id);
   return customer.id;
 }
+
+/** Garante um cliente no Asaas para a empresa (B2B) e persiste o id. */
+export async function ensureAsaasCustomerEmpresa(
+  cfg: AsaasConfig,
+  empresa: {
+    id: string;
+    razao_social: string;
+    cnpj: string | null;
+    email: string | null;
+    telefone: string | null;
+    asaas_customer_id?: string | null;
+  },
+): Promise<string> {
+  if (empresa.asaas_customer_id) return empresa.asaas_customer_id;
+
+  const cnpj = (empresa.cnpj ?? "").replace(/\D/g, "");
+  if (!cnpj) throw new Error(`Informe o CNPJ de ${empresa.razao_social} antes de gerar a cobrança.`);
+
+  const customer = await asaasFetch<AsaasCustomer>(cfg, "/customers", {
+    method: "POST",
+    body: {
+      name: empresa.razao_social,
+      cpfCnpj: cnpj,
+      email: empresa.email || undefined,
+      mobilePhone: (empresa.telefone ?? "").replace(/\D/g, "") || undefined,
+      externalReference: `empresas:${empresa.id}`,
+    },
+  });
+
+  await supabaseAdmin.from("empresas").update({ asaas_customer_id: customer.id } as never).eq("id", empresa.id);
+  return customer.id;
+}
