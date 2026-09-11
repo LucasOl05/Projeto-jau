@@ -572,6 +572,28 @@ function AlunosPage() {
         </DialogContent>
       </Dialog>
 
+      <AlertDialog open={!!removendo} onOpenChange={(o) => !o && setRemovendo(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este aluno? Esta ação não poderá ser desfeita.
+              Matrículas, chamadas, notas, documentos e cobranças em aberto de {removendo?.nome} também serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => removendo && excluir.mutate(removendo)}
+              disabled={excluir.isPending}
+            >
+              {excluir.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
@@ -702,28 +724,6 @@ function VinculoPicker({
           </Command>
         </PopoverContent>
       </Popover>
-      <AlertDialog open={!!removendo} onOpenChange={(o) => !o && setRemovendo(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este aluno? Esta ação não poderá ser desfeita.
-              Matrículas, chamadas, notas, documentos e cobranças em aberto de {removendo?.nome} também serão removidos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => removendo && excluir.mutate(removendo)}
-              disabled={excluir.isPending}
-            >
-              {excluir.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </div>
   );
 }
