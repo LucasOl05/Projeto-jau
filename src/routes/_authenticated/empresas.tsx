@@ -9,8 +9,6 @@ import {
   Plus,
   Trash2,
   FileText,
-  ExternalLink,
-  Copy,
   Search,
 } from "lucide-react";
 
@@ -46,7 +44,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { maskCNPJ, maskPhone, maskCEP, maskDate, brDateToISO, buscarEnderecoPorCEP } from "@/lib/masks";
+import { maskCNPJ, maskPhone, maskCEP, buscarEnderecoPorCEP } from "@/lib/masks";
+import { EmpresaFinanceiroDialog } from "@/components/empresa-financeiro";
 
 export const Route = createFileRoute("/_authenticated/empresas")({
   head: () => ({
@@ -79,21 +78,6 @@ type Empresa = {
   status: string;
 };
 
-type Fatura = {
-  id: string;
-  codigo_publico: string | null;
-  empresa_id: string;
-  competencia: string | null;
-  descricao: string | null;
-  valor: number;
-  vencimento: string;
-  data_pagamento: string | null;
-  status: string;
-  asaas_invoice_url: string | null;
-  asaas_pix_payload: string | null;
-  nfse_numero: string | null;
-  nfse_url: string | null;
-};
 
 const emptyEmpresa = {
   razao_social: "",
@@ -114,12 +98,6 @@ const emptyEmpresa = {
   status: "Ativa",
 };
 
-const emptyFatura = {
-  competencia: "",
-  descricao: "",
-  valor: "",
-  vencimento: "",
-};
 
 const currency = (v: number | null | undefined) =>
   Number(v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -133,8 +111,6 @@ function EmpresasPage() {
   const [form, setForm] = useState(emptyEmpresa);
   const [removing, setRemoving] = useState<Empresa | null>(null);
   const [faturasEmpresa, setFaturasEmpresa] = useState<Empresa | null>(null);
-  const [faturaDialogOpen, setFaturaDialogOpen] = useState(false);
-  const [faturaForm, setFaturaForm] = useState(emptyFatura);
 
   const empresasQuery = useQuery({
     queryKey: ["empresas"],
@@ -149,20 +125,6 @@ function EmpresasPage() {
     },
   });
 
-  const faturasQuery = useQuery({
-    queryKey: ["faturas_empresas", faturasEmpresa?.id],
-    enabled: !!faturasEmpresa,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("faturas_empresas")
-        .select("*")
-        .eq("empresa_id", faturasEmpresa!.id)
-        .is("deleted_at", null)
-        .order("vencimento", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Fatura[];
-    },
-  });
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -220,44 +182,6 @@ function EmpresasPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const salvarFatura = useMutation({
-    mutationFn: async () => {
-      if (!faturasEmpresa) return;
-      if (!faturaForm.valor || !faturaForm.vencimento)
-        throw new Error("Informe valor e vencimento.");
-      const { error } = await supabase.from("faturas_empresas").insert({
-        empresa_id: faturasEmpresa.id,
-        competencia: faturaForm.competencia || null,
-        descricao: faturaForm.descricao || null,
-        valor: Number(faturaForm.valor.replace(",", ".")),
-        vencimento: brDateToISO(faturaForm.vencimento) ?? faturaForm.vencimento,
-        status: "Pendente",
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Fatura lançada.");
-      setFaturaDialogOpen(false);
-      setFaturaForm(emptyFatura);
-      queryClient.invalidateQueries({ queryKey: ["faturas_empresas", faturasEmpresa?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const baixarFatura = useMutation({
-    mutationFn: async (fatura: Fatura) => {
-      const { error } = await supabase
-        .from("faturas_empresas")
-        .update({ status: "Pago", data_pagamento: new Date().toISOString().slice(0, 10) })
-        .eq("id", fatura.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Baixa registrada.");
-      queryClient.invalidateQueries({ queryKey: ["faturas_empresas", faturasEmpresa?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const empresas = (empresasQuery.data ?? []).filter((e) => {
     const q = busca.toLowerCase();
@@ -357,7 +281,7 @@ function EmpresasPage() {
                   <Badge variant={e.status === "Ativa" ? "default" : "secondary"}>{e.status}</Badge>
                   <Button variant="outline" size="sm" onClick={() => setFaturasEmpresa(e)}>
                     <FileText className="mr-2 h-4 w-4" />
-                    Faturas
+                    Financeiro
                   </Button>
                   {perms.isAdmin && (
                     <>
@@ -565,162 +489,13 @@ function EmpresasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog faturas da empresa */}
-      <Dialog open={!!faturasEmpresa} onOpenChange={(o) => !o && setFaturasEmpresa(null)}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Faturas — {faturasEmpresa?.nome_fantasia || faturasEmpresa?.razao_social}
-            </DialogTitle>
-            <DialogDescription>
-              Faturamento B2B. A emissão no Asaas e a NFS-e automática serão habilitadas ao
-              configurar a API em Configurações.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Financeiro da empresa */}
+      <EmpresaFinanceiroDialog
+        empresa={faturasEmpresa}
+        onOpenChange={(o) => !o && setFaturasEmpresa(null)}
+        canManage={perms.isAdmin}
+      />
 
-          {perms.isAdmin && (
-            <Button
-              size="sm"
-              className="w-fit"
-              onClick={() => {
-                setFaturaForm(emptyFatura);
-                setFaturaDialogOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova fatura
-            </Button>
-          )}
-
-          {faturasQuery.isLoading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : (faturasQuery.data ?? []).length === 0 ? (
-            <Card className="p-6 text-center text-sm text-muted-foreground">
-              Nenhuma fatura lançada.
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {(faturasQuery.data ?? []).map((f) => (
-                <Card
-                  key={f.id}
-                  className="flex flex-wrap items-center justify-between gap-2 p-3"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {f.codigo_publico ? `${f.codigo_publico} · ` : ""}
-                      {f.descricao ?? f.competencia ?? "Fatura"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Vencimento {new Date(`${f.vencimento}T00:00:00`).toLocaleDateString("pt-BR")}{" "}
-                      · {currency(f.valor)}
-                      {f.nfse_numero ? ` · NFS-e ${f.nfse_numero}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={f.status === "Pago" ? "default" : "secondary"}>{f.status}</Badge>
-                    {f.asaas_invoice_url && (
-                      <Button asChild size="sm" variant="outline">
-                        <a href={f.asaas_invoice_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="mr-1 h-3 w-3" />
-                          Abrir
-                        </a>
-                      </Button>
-                    )}
-                    {f.asaas_pix_payload && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(f.asaas_pix_payload as string);
-                          toast.success("PIX copiado.");
-                        }}
-                      >
-                        <Copy className="mr-1 h-3 w-3" />
-                        PIX
-                      </Button>
-                    )}
-                    {perms.isAdmin && f.status !== "Pago" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={baixarFatura.isPending}
-                        onClick={() => baixarFatura.mutate(f)}
-                      >
-                        Baixar
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog nova fatura */}
-      <Dialog open={faturaDialogOpen} onOpenChange={setFaturaDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova fatura</DialogTitle>
-          </DialogHeader>
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              salvarFatura.mutate();
-            }}
-          >
-            <div className="space-y-2">
-              <Label>Competência</Label>
-              <Input
-                placeholder="Ex: 09/2026"
-                value={faturaForm.competencia}
-                onChange={(e) => setFaturaForm({ ...faturaForm, competencia: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Input
-                value={faturaForm.descricao}
-                onChange={(e) => setFaturaForm({ ...faturaForm, descricao: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Valor (R$) *</Label>
-              <Input
-                inputMode="decimal"
-                required
-                value={faturaForm.valor}
-                onChange={(e) => setFaturaForm({ ...faturaForm, valor: e.target.value })}
-                placeholder="0,00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Vencimento *</Label>
-              <Input
-                required
-                inputMode="numeric"
-                placeholder="dd/mm/aaaa"
-                value={faturaForm.vencimento}
-                onChange={(e) =>
-                  setFaturaForm({ ...faturaForm, vencimento: maskDate(e.target.value) })
-                }
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setFaturaDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={salvarFatura.isPending}>
-                {salvarFatura.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Lançar
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Confirmação de remoção */}
       <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
