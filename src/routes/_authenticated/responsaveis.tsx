@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +21,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useServerFn } from "@tanstack/react-start";
+import { excluirResponsavelDefinitivo } from "@/lib/exclusoes.functions";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { isValidCPF, maskCPF, maskPhone, onlyDigits } from "@/lib/masks";
 
@@ -109,6 +121,19 @@ function ResponsaveisPage() {
       qc.invalidateQueries({ queryKey: ["responsaveis"] });
       setOpen(false);
       setForm(emptyForm);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const [removendo, setRemovendo] = useState<Responsavel | null>(null);
+  const excluirResponsavel = useServerFn(excluirResponsavelDefinitivo);
+  const excluir = useMutation({
+    mutationFn: async (r: Responsavel) => excluirResponsavel({ data: { responsavelId: r.id } }),
+    onSuccess: () => {
+      toast.success("Responsável excluído.");
+      setRemovendo(null);
+      qc.invalidateQueries({ queryKey: ["responsaveis"] });
+      qc.invalidateQueries({ queryKey: ["responsaveis-lookup"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -232,11 +257,10 @@ function ResponsaveisPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => {
-                          if (confirm(`Excluir o responsável "${r.nome}"?`)) softDelete.mutate(r);
-                        }}
+                        title="Excluir"
+                        onClick={() => setRemovendo(r)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
                   )}
@@ -297,6 +321,28 @@ function ResponsaveisPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={!!removendo} onOpenChange={(o) => !o && setRemovendo(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir responsável?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir {removendo?.nome}? Esta ação não poderá ser desfeita.
+              Os vínculos com alunos serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => removendo && excluir.mutate(removendo)}
+              disabled={excluir.isPending}
+            >
+              {excluir.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
