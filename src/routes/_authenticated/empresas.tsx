@@ -79,21 +79,6 @@ type Empresa = {
   status: string;
 };
 
-type Fatura = {
-  id: string;
-  codigo_publico: string | null;
-  empresa_id: string;
-  competencia: string | null;
-  descricao: string | null;
-  valor: number;
-  vencimento: string;
-  data_pagamento: string | null;
-  status: string;
-  asaas_invoice_url: string | null;
-  asaas_pix_payload: string | null;
-  nfse_numero: string | null;
-  nfse_url: string | null;
-};
 
 const emptyEmpresa = {
   razao_social: "",
@@ -114,12 +99,6 @@ const emptyEmpresa = {
   status: "Ativa",
 };
 
-const emptyFatura = {
-  competencia: "",
-  descricao: "",
-  valor: "",
-  vencimento: "",
-};
 
 const currency = (v: number | null | undefined) =>
   Number(v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -133,8 +112,6 @@ function EmpresasPage() {
   const [form, setForm] = useState(emptyEmpresa);
   const [removing, setRemoving] = useState<Empresa | null>(null);
   const [faturasEmpresa, setFaturasEmpresa] = useState<Empresa | null>(null);
-  const [faturaDialogOpen, setFaturaDialogOpen] = useState(false);
-  const [faturaForm, setFaturaForm] = useState(emptyFatura);
 
   const empresasQuery = useQuery({
     queryKey: ["empresas"],
@@ -149,20 +126,6 @@ function EmpresasPage() {
     },
   });
 
-  const faturasQuery = useQuery({
-    queryKey: ["faturas_empresas", faturasEmpresa?.id],
-    enabled: !!faturasEmpresa,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("faturas_empresas")
-        .select("*")
-        .eq("empresa_id", faturasEmpresa!.id)
-        .is("deleted_at", null)
-        .order("vencimento", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Fatura[];
-    },
-  });
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -220,44 +183,6 @@ function EmpresasPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const salvarFatura = useMutation({
-    mutationFn: async () => {
-      if (!faturasEmpresa) return;
-      if (!faturaForm.valor || !faturaForm.vencimento)
-        throw new Error("Informe valor e vencimento.");
-      const { error } = await supabase.from("faturas_empresas").insert({
-        empresa_id: faturasEmpresa.id,
-        competencia: faturaForm.competencia || null,
-        descricao: faturaForm.descricao || null,
-        valor: Number(faturaForm.valor.replace(",", ".")),
-        vencimento: brDateToISO(faturaForm.vencimento) ?? faturaForm.vencimento,
-        status: "Pendente",
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Fatura lançada.");
-      setFaturaDialogOpen(false);
-      setFaturaForm(emptyFatura);
-      queryClient.invalidateQueries({ queryKey: ["faturas_empresas", faturasEmpresa?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const baixarFatura = useMutation({
-    mutationFn: async (fatura: Fatura) => {
-      const { error } = await supabase
-        .from("faturas_empresas")
-        .update({ status: "Pago", data_pagamento: new Date().toISOString().slice(0, 10) })
-        .eq("id", fatura.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Baixa registrada.");
-      queryClient.invalidateQueries({ queryKey: ["faturas_empresas", faturasEmpresa?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const empresas = (empresasQuery.data ?? []).filter((e) => {
     const q = busca.toLowerCase();
