@@ -9,8 +9,6 @@ import {
   Plus,
   Trash2,
   FileText,
-  ExternalLink,
-  Copy,
   Search,
 } from "lucide-react";
 
@@ -46,7 +44,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { maskCNPJ, maskPhone, maskCEP, maskDate, brDateToISO, buscarEnderecoPorCEP } from "@/lib/masks";
+import { maskCNPJ, maskPhone, maskCEP, buscarEnderecoPorCEP } from "@/lib/masks";
+import { EmpresaFinanceiroDialog } from "@/components/empresa-financeiro";
 
 export const Route = createFileRoute("/_authenticated/empresas")({
   head: () => ({
@@ -282,7 +281,7 @@ function EmpresasPage() {
                   <Badge variant={e.status === "Ativa" ? "default" : "secondary"}>{e.status}</Badge>
                   <Button variant="outline" size="sm" onClick={() => setFaturasEmpresa(e)}>
                     <FileText className="mr-2 h-4 w-4" />
-                    Faturas
+                    Financeiro
                   </Button>
                   {perms.isAdmin && (
                     <>
