@@ -138,20 +138,6 @@ function ResponsaveisPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const softDelete = useMutation({
-    mutationFn: async (r: Responsavel) => {
-      const { error } = await supabase
-        .from("responsaveis")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", r.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Responsável excluído");
-      qc.invalidateQueries({ queryKey: ["responsaveis"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const filtered = useMemo(() => {
     const rows = responsaveisQuery.data ?? [];
