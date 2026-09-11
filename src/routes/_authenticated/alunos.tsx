@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Users, CheckCircle2, Clock, X, FolderOpen, FilterX } from "lucide-react";
+import { Search, Plus, Pencil, Users, CheckCircle2, Clock, X, FolderOpen, FilterX, Trash2, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -42,6 +42,18 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useServerFn } from "@tanstack/react-start";
+import { excluirAlunoDefinitivo } from "@/lib/exclusoes.functions";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { DocumentosPanel } from "@/components/documentos-panel";
 import { brDateToISO, isoDateToBR, isValidCPF, maskCPF, maskDate, maskPhone, onlyDigits } from "@/lib/masks";
@@ -143,6 +155,17 @@ function AlunosPage() {
   const [docsAluno, setDocsAluno] = useState<Aluno | null>(null);
   const qc = useQueryClient();
   const { data: isAdmin } = useIsAdmin();
+  const [removendo, setRemovendo] = useState<Aluno | null>(null);
+  const excluirAluno = useServerFn(excluirAlunoDefinitivo);
+  const excluir = useMutation({
+    mutationFn: async (a: Aluno) => excluirAluno({ data: { alunoId: a.id } }),
+    onSuccess: () => {
+      toast.success("Aluno excluído.");
+      setRemovendo(null);
+      qc.invalidateQueries({ queryKey: ["alunos"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const alunosQuery = useQuery({
     queryKey: ["alunos"],
@@ -427,9 +450,14 @@ function AlunosPage() {
                           <FolderOpen className="h-4 w-4" />
                         </Button>
                         {isAdmin && (
-                          <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(a)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(a)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" title="Excluir" onClick={() => setRemovendo(a)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </TableCell>
@@ -674,6 +702,28 @@ function VinculoPicker({
           </Command>
         </PopoverContent>
       </Popover>
+      <AlertDialog open={!!removendo} onOpenChange={(o) => !o && setRemovendo(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este aluno? Esta ação não poderá ser desfeita.
+              Matrículas, chamadas, notas, documentos e cobranças em aberto de {removendo?.nome} também serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => removendo && excluir.mutate(removendo)}
+              disabled={excluir.isPending}
+            >
+              {excluir.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
