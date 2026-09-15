@@ -158,13 +158,22 @@ function AlunosPage() {
   const [removendo, setRemovendo] = useState<Aluno | null>(null);
   const excluirAluno = useServerFn(excluirAlunoDefinitivo);
   const excluir = useMutation({
-    mutationFn: async (a: Aluno) => excluirAluno({ data: { alunoId: a.id } }),
+    mutationFn: async (a: Aluno) => {
+      try {
+        return await excluirAluno({ data: { alunoId: a.id } });
+      } catch (e) {
+        const msg = e instanceof Error && e.message ? e.message : "Não foi possível excluir o aluno.";
+        throw new Error(msg);
+      }
+    },
     onSuccess: () => {
       toast.success("Aluno excluído.");
       setRemovendo(null);
       qc.invalidateQueries({ queryKey: ["alunos"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message || "Não foi possível excluir o aluno.");
+    },
   });
 
   const alunosQuery = useQuery({
