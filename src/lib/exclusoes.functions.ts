@@ -17,28 +17,11 @@ export const excluirAlunoDefinitivo = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ alunoId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as any);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: pagas } = await supabaseAdmin
-      .from("mensalidades")
-      .select("id")
-      .eq("aluno_id", data.alunoId)
-      .eq("status", "Pago")
-      .limit(1);
-    if (pagas && pagas.length > 0) {
-      throw new Error(
-        "Este aluno possui pagamentos já quitados. Por segurança do histórico financeiro, a exclusão foi bloqueada.",
-      );
-    }
-
-    await supabaseAdmin.from("aluno_responsavel").delete().eq("aluno_id", data.alunoId);
-    await supabaseAdmin.from("diario_chamada").delete().eq("aluno_id", data.alunoId);
-    await supabaseAdmin.from("avaliacao_notas").delete().eq("aluno_id", data.alunoId);
-    await supabaseAdmin.from("documentos").delete().eq("aluno_id", data.alunoId);
-    await supabaseAdmin.from("mensalidades").delete().eq("aluno_id", data.alunoId);
-    await supabaseAdmin.from("matriculas").delete().eq("aluno_id", data.alunoId);
-
-    const { error } = await supabaseAdmin.from("alunos").delete().eq("id", data.alunoId);
+    // Função no banco remove matrículas e demais vínculos antes do aluno,
+    // em uma única transação, ignorando o soft delete das matrículas.
+    const { error } = await (context as any).supabase.rpc("admin_excluir_aluno", {
+      _aluno: data.alunoId,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
