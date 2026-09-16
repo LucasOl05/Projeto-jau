@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { excluirAlunoDefinitivo } from "@/lib/exclusoes.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -145,12 +147,16 @@ function UsuariosPage() {
     },
   });
 
+  const excluirAlunoFn = useServerFn(excluirAlunoDefinitivo);
+
   const excluirAluno = useMutation({
     mutationFn: async (a: AlunoRow) => {
-      const { error: vErr } = await supabase.from("aluno_responsavel").delete().eq("aluno_id", a.id);
-      if (vErr) throw vErr;
-      const { error } = await supabase.from("alunos").delete().eq("id", a.id);
-      if (error) throw error;
+      try {
+        await excluirAlunoFn({ data: { alunoId: a.id } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Não foi possível excluir o aluno.";
+        throw new Error(msg);
+      }
     },
     onSuccess: () => {
       toast.success("Aluno excluído definitivamente.");
