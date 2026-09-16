@@ -1294,6 +1294,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_excluir_aluno: { Args: { _aluno: string }; Returns: undefined }
       get_default_school_id: { Args: never; Returns: string }
       has_role: {
         Args: {
