@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { excluirAlunoDefinitivo } from "@/lib/exclusoes.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, ShieldOff, Search, Check, X, Ban, Undo2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
