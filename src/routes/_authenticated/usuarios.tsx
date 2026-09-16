@@ -145,12 +145,16 @@ function UsuariosPage() {
     },
   });
 
+  const excluirAlunoFn = useServerFn(excluirAlunoDefinitivo);
+
   const excluirAluno = useMutation({
     mutationFn: async (a: AlunoRow) => {
-      const { error: vErr } = await supabase.from("aluno_responsavel").delete().eq("aluno_id", a.id);
-      if (vErr) throw vErr;
-      const { error } = await supabase.from("alunos").delete().eq("id", a.id);
-      if (error) throw error;
+      try {
+        await excluirAlunoFn({ data: { alunoId: a.id } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Não foi possível excluir o aluno.";
+        throw new Error(msg);
+      }
     },
     onSuccess: () => {
       toast.success("Aluno excluído definitivamente.");
