@@ -395,10 +395,28 @@ function DiarioPage() {
                     {resumo.total} matriculados · {resumo.presentes} presentes · {resumo.faltas} faltas · {resumo.justificadas} justificadas
                   </p>
                 </div>
-                <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {saveMutation.isPending ? "Salvando..." : "Salvar diário"}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={alunos.length === 0}
+                    onClick={() =>
+                      setChamada((p) => {
+                        const n = { ...p };
+                        alunos.forEach((a) => {
+                          if (n[a.id] !== "Justificada") n[a.id] = "Presente";
+                        });
+                        return n;
+                      })
+                    }
+                  >
+                    <Check className="mr-2 h-4 w-4" />
+                    Todos presentes
+                  </Button>
+                  <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {saveMutation.isPending ? "Salvando..." : "Salvar diário"}
+                  </Button>
+                </div>
               </div>
 
               {alunosQuery.isLoading ? (

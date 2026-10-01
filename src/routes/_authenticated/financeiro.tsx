@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Plus, Search, TrendingDown, Wallet, CheckCircle2, Ban, Trash2, QrCode } from "lucide-react";
+import { CircleDollarSign, Plus, Search, TrendingDown, Wallet, CheckCircle2, Ban, Trash2, QrCode, FileText, Copy, MessageCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -60,8 +60,11 @@ type Mensalidade = {
   valor_pago: number | null;
   forma_pagamento: string | null;
   observacoes: string | null;
-  alunos: { nome: string; codigo_publico: string | null } | null;
-  responsaveis: { nome: string } | null;
+  asaas_invoice_url: string | null;
+  asaas_bank_slip_url: string | null;
+  asaas_pix_payload: string | null;
+  alunos: { nome: string; codigo_publico: string | null; telefone: string | null } | null;
+  responsaveis: { nome: string; telefone: string | null } | null;
 };
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -140,7 +143,7 @@ function FinanceiroPage() {
       const { data, error } = await supabase
         .from("mensalidades")
         .select(
-          "id, codigo_publico, aluno_id, responsavel_id, matricula_id, descricao, competencia, valor, vencimento, status, data_pagamento, valor_pago, forma_pagamento, observacoes, alunos(nome, codigo_publico), responsaveis(nome)",
+          "id, codigo_publico, aluno_id, responsavel_id, matricula_id, descricao, competencia, valor, vencimento, status, data_pagamento, valor_pago, forma_pagamento, observacoes, asaas_invoice_url, asaas_bank_slip_url, asaas_pix_payload, alunos(nome, codigo_publico, telefone), responsaveis(nome, telefone)",
         )
         .is("deleted_at", null)
         .order("vencimento", { ascending: false });
@@ -494,6 +497,33 @@ function FinanceiroPage() {
                           {st !== "Pago" && st !== "Cancelado" && (
                             <Button size="sm" variant="ghost" title="Dar baixa" onClick={() => openBaixa(m)}>
                               <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {st !== "Pago" && st !== "Cancelado" && m.asaas_bank_slip_url && (
+                            <Button size="sm" variant="ghost" title="Abrir boleto" asChild>
+                              <a href={m.asaas_bank_slip_url} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a>
+                            </Button>
+                          )}
+                          {st !== "Pago" && st !== "Cancelado" && m.asaas_pix_payload && (
+                            <Button size="sm" variant="ghost" title="Copiar PIX" onClick={() => { navigator.clipboard.writeText(m.asaas_pix_payload!); toast.success("PIX copiado."); }}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {st !== "Pago" && st !== "Cancelado" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              title="Enviar cobrança por WhatsApp"
+                              onClick={() => {
+                                const fone = (m.responsaveis?.telefone || m.alunos?.telefone || "").replace(/\D/g, "");
+                                if (fone.length < 10) { toast.error("Telefone sem DDD ou incompleto no cadastro."); return; }
+                                const nome = m.responsaveis?.nome || m.alunos?.nome || "";
+                                const link = m.asaas_invoice_url || m.asaas_bank_slip_url;
+                                const msg = `Olá, ${nome}! Lembrete da mensalidade de ${m.alunos?.nome ?? ""} (${m.competencia ?? ""}) no valor de ${currency.format(m.valor)}, vencimento ${formatDate(m.vencimento)}.${link ? `\nPagamento: ${link}` : ""}${m.asaas_pix_payload ? `\nPIX copia e cola: ${m.asaas_pix_payload}` : ""}`;
+                                window.open(`https://wa.me/55${fone.replace(/^55(?=\d{10,11}$)/, "")}?text=${encodeURIComponent(msg)}`, "_blank");
+                              }}
+                            >
+                              <MessageCircle className="h-4 w-4" />
                             </Button>
                           )}
                           {st !== "Pago" && st !== "Cancelado" && (
