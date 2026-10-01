@@ -54,6 +54,12 @@ function PortalAcessoPage() {
             Entrar com e-mail e senha
           </Link>
         </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          É empresa parceira?{" "}
+          <Link to="/portal-empresa" className="underline underline-offset-4">
+            Portal da Empresa
+          </Link>
+        </p>
       </div>
     </div>
   );

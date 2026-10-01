@@ -10,6 +10,7 @@ import {
   Trash2,
   FileText,
   Search,
+  Copy,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -282,6 +283,19 @@ function EmpresasPage() {
                   <Button variant="outline" size="sm" onClick={() => setFaturasEmpresa(e)}>
                     <FileText className="mr-2 h-4 w-4" />
                     Financeiro
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    title="Copiar acesso ao Portal da Empresa"
+                    onClick={() => {
+                      const texto = `Olá! Acesse o Portal da Empresa JAU para ver faturas, boletos e notas fiscais:\n${window.location.origin}/portal-empresa\nCNPJ: ${e.cnpj ?? ""}\nCódigo de acesso: ${e.codigo_publico ?? ""}`;
+                      navigator.clipboard.writeText(texto);
+                      toast.success("Acesso copiado. Cole no WhatsApp da empresa.");
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Acesso portal
                   </Button>
                   {perms.isAdmin && (
                     <>

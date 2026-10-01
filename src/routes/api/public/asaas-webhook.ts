@@ -49,6 +49,13 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
             } as never)
             .eq("asaas_payment_id" as never, payment.id as never)
             .neq("status" as never, "Paga" as never);
+        } else if (payload.event === "PAYMENT_OVERDUE") {
+          // Marca como vencida sem sobrescrever o que já foi pago.
+          await supabaseAdmin
+            .from("faturas_empresas")
+            .update({ status: "Vencida" } as never)
+            .eq("asaas_payment_id" as never, payment.id as never)
+            .neq("status" as never, "Paga" as never);
         } else if (estornos.includes(payload.event)) {
           await supabaseAdmin
             .from("mensalidades")
