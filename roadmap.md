@@ -7,4 +7,5 @@
 - [x] Fase E: emissão de PDFs já disponível na Central de Relatórios.
 - [x] Portal da Empresa público + atalho de acesso por WhatsApp.
 - [x] PWA (instalar no celular) e aviso de fatura vencida.
-- [ ] Demais fases (cobrança em lote, contratos dinâmicos, estágios, BI) — próximas etapas.
+- [x] Financeiro: boleto, PIX e WhatsApp em 1 clique; Diário: "Todos presentes".
+- [ ] Próximas: cobrança em lote, contratos dinâmicos, estágios, painéis de análise.
